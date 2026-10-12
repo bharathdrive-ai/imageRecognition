@@ -151,8 +151,10 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .dropzone:hover, .dropzone:focus-visible, .dropzone.drag {
   border-color: var(--accent); background: var(--accent-soft); outline: none;
 }
-.input-actions { display: flex; gap: 8px; margin-top: 10px; }
+.input-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .input-actions > * { flex: 1; }
+.input-actions > .drive-btn { flex-basis: 100%; }
+.drive-btn svg { width: 16px; height: 16px; color: var(--accent); stroke-width: 1.8; }
 
 .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .count {

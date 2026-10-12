@@ -9,7 +9,7 @@ Everything runs on the user's device. Files are never uploaded; only the OCR eng
 
 ## Features
 
-- **Inputs:** drag & drop, file picker (multiple files), paste screenshots with Ctrl+V, phone camera, PDFs (each page rendered with pdf.js, up to 50 pages)
+- **Inputs:** drag & drop, file picker (multiple files), **Google Drive** (My Drive and shared drives, via Google Picker), paste screenshots with Ctrl+V, phone camera, PDFs (each page rendered with pdf.js, up to 50 pages)
 - **22 languages**, up to 3 at once: English, Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Urdu, Arabic, Chinese (Simplified/Traditional), Japanese, Korean, French, German, Spanish, Italian, Portuguese, Russian
 - **Page layout modes:** automatic, single column, uniform block, sparse text, single line/word/character
 - **Preprocessing:** auto-upscale, grayscale, auto contrast, Otsu black-&-white thresholding, invert (light text on dark), 90° rotation, automatic deskew of tilted scans. Toggle **Original / Processed** to see what the engine sees
@@ -37,6 +37,25 @@ A push to `main` deploys to both hosts automatically:
 
 Any other static host (Netlify, Cloudflare Pages) works the same way.
 
+## Google Drive setup
+
+The **Google Drive** button opens Google's file picker. Picked images and PDFs download straight from the Drive API into the browser, and nothing goes through any other server. The app asks only for the `drive.file` scope, so it can read the files the user picks and nothing else in their Drive.
+
+The button stays hidden until `js/config.js` has three values. To get them from [Google Cloud Console](https://console.cloud.google.com/):
+
+1. **Pick or create a project** and note its **project number** (Dashboard). This is `appId`.
+2. **Enable APIs:** APIs & Services → Library → enable **Google Picker API** and **Google Drive API**.
+3. **OAuth consent screen:** User type *External*, add the app name and support email, and add the scope `.../auth/drive.file`. While the app is in *Testing*, only the listed test users can sign in. Click *Publish app* to open it to everyone; `drive.file` is a non-sensitive scope, so Google review isn't needed.
+4. **OAuth client ID:** Credentials → Create credentials → OAuth client ID → *Web application*. Under **Authorized JavaScript origins**, add:
+   - `https://imagesearcheasy.vercel.app`
+   - `https://bharathdrive-ai.github.io`
+   - `http://localhost:8790`
+
+   Copy the client ID into `clientId`.
+5. **API key:** Credentials → Create credentials → API key. Restrict it to the **Google Picker API**, and to websites `https://imagesearcheasy.vercel.app/*`, `https://bharathdrive-ai.github.io/*` and `http://localhost:8790/*`. Copy it into `apiKey`.
+
+These values are public by design: they identify the app to Google and are not secrets. The API key's restrictions are what stop it being used elsewhere. Never put a service-account key in this repo.
+
 ## Project structure
 
 ```
@@ -46,6 +65,8 @@ js/app.js           State, file handling, rendering, overlay interaction, export
 js/ocr.js           Tesseract.js worker wrapper (lazy init, language switching, TSV parsing)
 js/preprocess.js    Canvas preprocessing (scale, grayscale, contrast, Otsu, invert, rotate)
 js/pdf.js           PDF → page canvases via pdf.js (loaded only when a PDF is added)
+js/drive.js         Google Drive import: sign-in, Picker, downloads (Google scripts load on demand)
+js/config.js        Google Drive client ID, API key, project number (blank = Drive button hidden)
 js/export.js        Download helpers (txt, json, combined)
 ```
 

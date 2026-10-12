@@ -2,6 +2,7 @@ import { makeCanvas, rotateCanvas, preprocess, looksDark } from './preprocess.js
 import { recognize, isEngineLoaded } from './ocr.js';
 import { renderPdf } from './pdf.js';
 import { download, baseName, toJson, combinedText } from './export.js';
+import { driveConfigured, preloadDrive, importFromDrive } from './drive.js';
 
 const LANGUAGES = [
   ['eng', 'English'], ['hin', 'Hindi'], ['tam', 'Tamil'], ['tel', 'Telugu'], ['kan', 'Kannada'],
@@ -17,7 +18,7 @@ const THEME_KEY = 'ocr-theme';
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  dropZone: $('dropZone'), fileInput: $('fileInput'), cameraInput: $('cameraInput'), sampleBtn: $('sampleBtn'),
+  dropZone: $('dropZone'), fileInput: $('fileInput'), cameraInput: $('cameraInput'), sampleBtn: $('sampleBtn'), driveBtn: $('driveBtn'),
   fileList: $('fileList'), fileCount: $('fileCount'), emptyQueue: $('emptyQueue'), clearAllBtn: $('clearAllBtn'),
   langChips: $('langChips'), langSelect: $('langSelect'), psmSelect: $('psmSelect'), scaleSelect: $('scaleSelect'),
   optGray: $('optGray'), optContrast: $('optContrast'), optBinarize: $('optBinarize'), optInvert: $('optInvert'),
@@ -739,6 +740,30 @@ function init() {
     const item = addItem('sample.png', makeSample());
     runItems([item]);
   });
+
+  // Google Drive: the button only shows when js/config.js has credentials.
+  if (driveConfigured()) {
+    el.driveBtn.hidden = false;
+    // Fetch Google's scripts as soon as someone heads for the button, so the sign-in
+    // pop-up can open within the click's user gesture.
+    const warm = () => preloadDrive().catch(() => {});
+    ['pointerenter', 'focus', 'touchstart'].forEach((ev) => el.driveBtn.addEventListener(ev, warm, { once: true, passive: true }));
+    el.driveBtn.addEventListener('click', async () => {
+      el.driveBtn.disabled = true;
+      try {
+        const { files, failed } = await importFromDrive((label, p) => showProgress(label, p));
+        hideProgress();
+        if (files.length) await addFiles(files);
+        if (failed.length) toast(failed.length === 1 ? failed[0] : `${failed.length} files couldn't be downloaded from Drive.`);
+      } catch (err) {
+        hideProgress();
+        console.error(err);
+        if (!err.quiet) toast(err.message || 'Google Drive import failed.');
+      } finally {
+        el.driveBtn.disabled = false;
+      }
+    });
+  }
 
   // Drag & drop anywhere on the page.
   let dragDepth = 0;
