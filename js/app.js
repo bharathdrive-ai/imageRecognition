@@ -713,6 +713,48 @@ function applyTheme(theme) {
   else delete document.documentElement.dataset.theme;
 }
 
+const PALETTE_KEY = 'ocr-palette';
+const PALETTES = [
+  ['classic', 'Classic', 'linear-gradient(135deg, #6366f1, #8b5cf6)'],
+  ['candy', 'Candy', 'conic-gradient(#f472b6, #a78bfa, #60a5fa, #34d399, #facc15, #f472b6)'],
+  ['sunset', 'Sunset', 'linear-gradient(135deg, #fbbf24, #f97316, #db2777)'],
+  ['ocean', 'Ocean', 'linear-gradient(135deg, #06b6d4, #3b82f6, #6366f1)'],
+  ['neon', 'Neon', 'conic-gradient(#a3e635, #22d3ee, #f472b6, #fde047, #a3e635)'],
+];
+
+function applyPalette(name, remember) {
+  const valid = PALETTES.some(([id]) => id === name) ? name : 'classic';
+  document.documentElement.dataset.palette = valid;
+  el.palettePicker?.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.palette === valid)));
+  if (remember) {
+    try { localStorage.setItem(PALETTE_KEY, valid); } catch { /* ignore */ }
+  }
+  drawOverlay();
+}
+
+function initPalette() {
+  el.palettePicker = $('palettePicker');
+  if (el.palettePicker) {
+    for (const [id, label, swatch] of PALETTES) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'swatch';
+      b.dataset.palette = id;
+      b.title = `${label} palette`;
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-label', `${label} palette`);
+      b.style.background = swatch;
+      b.addEventListener('click', () => applyPalette(id, true));
+      el.palettePicker.appendChild(b);
+    }
+  }
+  // A ?palette= link wins (and is remembered), then the saved choice, then Classic.
+  const fromUrl = new URLSearchParams(location.search).get('palette');
+  let saved = null;
+  try { saved = localStorage.getItem(PALETTE_KEY); } catch { /* ignore */ }
+  applyPalette(fromUrl || saved || 'classic', !!fromUrl);
+}
+
 function effectiveTheme() {
   return document.documentElement.dataset.theme
     || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -724,6 +766,7 @@ function effectiveTheme() {
 
 function init() {
   try { applyTheme(localStorage.getItem(THEME_KEY)); } catch { /* ignore */ }
+  initPalette();
   loadSettings();
   el.confThresholdOut.textContent = el.confThreshold.value;
   renderLanguages();

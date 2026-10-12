@@ -28,6 +28,7 @@
           <span class="brand-mark">TextVision <span class="ai-badge">AI</span></span>
         </div>
         <div class="hero-actions">
+          <div id="palettePicker" class="palette-picker" role="radiogroup" aria-label="Colour palette"></div>
           <span id="engineStatus" class="engine-status" data-state="idle"><span class="dot"></span><span class="label">Engine idle</span></span>
           <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -52,7 +53,7 @@
     </section>
 
     <!-- Upload -->
-    <section class="tile tile-upload">
+    <section class="tile tile-upload tinted">
       <div class="tile-label">Add files</div>
       <label id="dropZone" class="dropzone" tabindex="0">
         <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
@@ -114,7 +115,7 @@
     </section>
 
     <!-- Results -->
-    <section class="tile tile-results">
+    <section class="tile tile-results tinted">
       <div class="results-head">
         <div class="tile-label">Recognized text</div>
         <div class="tabs" role="tablist">
@@ -137,7 +138,7 @@
     </section>
 
     <!-- Files -->
-    <section class="tile tile-files">
+    <section class="tile tile-files tinted">
       <div class="section-head">
         <div class="tile-label">Files <span id="fileCount" class="count">0</span></div>
         <button id="clearAllBtn" class="link-btn" type="button" disabled>Clear all</button>
@@ -148,7 +149,7 @@
     </section>
 
     <!-- Language & layout -->
-    <section class="tile tile-lang">
+    <section class="tile tile-lang tinted">
       <div class="tile-label">Language &amp; layout</div>
       <div class="field">
         <label for="langSelect">Languages</label>
@@ -170,7 +171,7 @@
     </section>
 
     <!-- Image cleanup -->
-    <section class="tile tile-pre">
+    <section class="tile tile-pre tinted">
       <div class="tile-label">Image cleanup</div>
       <div class="field">
         <label for="scaleSelect">Upscale</label>
@@ -190,7 +191,7 @@
     </section>
 
     <!-- Fine-tuning -->
-    <section class="tile tile-adv">
+    <section class="tile tile-adv tinted">
       <div class="tile-label">Fine-tuning</div>
       <div class="field">
         <label for="whitelist">Only allow these characters</label>
@@ -204,7 +205,7 @@
     </section>
 
     <!-- Privacy -->
-    <section class="tile tile-privacy">
+    <section class="tile tile-privacy tinted">
       <svg class="privacy-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
       <p class="privacy-big">100% on-device</p>
       <p class="privacy-text">Files never leave your browser. Drive files download straight from Google, and nothing is stored.</p>
@@ -212,7 +213,7 @@
     </section>
 
     <!-- Export -->
-    <section class="tile tile-export">
+    <section class="tile tile-export tinted">
       <div class="tile-label">Export</div>
       <p class="export-note">Copy the text, or download TXT, searchable PDF, JSON, TSV or hOCR.</p>
       <div class="export-bar">
