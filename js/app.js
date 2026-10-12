@@ -713,7 +713,8 @@ function applyTheme(theme) {
   else delete document.documentElement.dataset.theme;
 }
 
-const PALETTE_KEY = 'ocr-palette';
+const PALETTE_KEY = 'ocr-palette-v2';
+const DEFAULT_PALETTE = 'ocean';
 const PALETTES = [
   ['classic', 'Classic', 'linear-gradient(135deg, #6366f1, #8b5cf6)'],
   ['candy', 'Candy', 'conic-gradient(#f472b6, #a78bfa, #60a5fa, #34d399, #facc15, #f472b6)'],
@@ -723,7 +724,7 @@ const PALETTES = [
 ];
 
 function applyPalette(name, remember) {
-  const valid = PALETTES.some(([id]) => id === name) ? name : 'classic';
+  const valid = PALETTES.some(([id]) => id === name) ? name : DEFAULT_PALETTE;
   document.documentElement.dataset.palette = valid;
   el.palettePicker?.querySelectorAll('.swatch').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.palette === valid)));
   if (remember) {
@@ -748,11 +749,11 @@ function initPalette() {
       el.palettePicker.appendChild(b);
     }
   }
-  // A ?palette= link wins (and is remembered), then the saved choice, then Classic.
+  // A ?palette= link wins (and is remembered), then the saved choice, then the default.
   const fromUrl = new URLSearchParams(location.search).get('palette');
   let saved = null;
   try { saved = localStorage.getItem(PALETTE_KEY); } catch { /* ignore */ }
-  applyPalette(fromUrl || saved || 'classic', !!fromUrl);
+  applyPalette(fromUrl || saved || DEFAULT_PALETTE, !!fromUrl);
 }
 
 function effectiveTheme() {
