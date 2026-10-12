@@ -6,25 +6,46 @@
   <title>Privacy Policy · TextVision AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#6366f1">
   <style>
-    :root { --bg: #f4f6fa; --surface: #fff; --text: #0f172a; --text-2: #475569; --border: #e2e8f0; --accent: #2563eb; }
+    :root {
+      --bg: #f5f6fb; --glow-1: rgba(99, 102, 241, .16); --glow-2: rgba(6, 182, 212, .12);
+      --surface: #fff; --text: #0f1530; --text-2: #4a5272; --border: rgba(15, 23, 42, .08);
+      --accent: #5b5bf0; --brand-grad: linear-gradient(135deg, #6366f1, #8b5cf6);
+      --shadow: 0 1px 2px rgba(15, 21, 48, .05), 0 8px 24px -6px rgba(15, 21, 48, .10);
+    }
     @media (prefers-color-scheme: dark) {
-      :root { --bg: #0b1020; --surface: #121a2e; --text: #e6ebf5; --text-2: #a9b4cc; --border: #22304d; --accent: #7aa2ff; }
+      :root {
+        --bg: #090b16; --glow-1: rgba(99, 102, 241, .22); --glow-2: rgba(139, 92, 246, .16);
+        --surface: #141730; --text: #eceffd; --text-2: #b3b9d6; --border: rgba(255, 255, 255, .08);
+        --accent: #8b8cff; --shadow: 0 10px 30px -8px rgba(0, 0, 0, .55);
+      }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.65 Inter, system-ui, sans-serif; }
-    main { max-width: 760px; margin: 32px auto; padding: 32px 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-    h1 { font-size: 26px; margin: 0 0 4px; }
-    h2 { font-size: 17px; margin: 28px 0 6px; }
+    body {
+      margin: 0; color: var(--text); font: 15px/1.7 Inter, system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(900px 520px at 0% -10%, var(--glow-1), transparent 60%),
+                        radial-gradient(700px 480px at 100% 0%, var(--glow-2), transparent 60%);
+      background-attachment: fixed;
+    }
+    main { max-width: 760px; margin: 40px auto; padding: 36px 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+    .brand { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; font: 700 15px "Space Grotesk", Inter, sans-serif; color: var(--text); text-decoration: none; }
+    .brand i { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-grad); box-shadow: 0 6px 18px -4px rgba(99, 102, 241, .55); }
+    .brand b { font: 700 10.5px Inter, sans-serif; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; color: #fff; background: var(--brand-grad); }
+    h1 { font: 700 30px/1.2 "Space Grotesk", Inter, sans-serif; letter-spacing: -.02em; margin: 0 0 4px; }
+    h2 { font: 600 18px "Space Grotesk", Inter, sans-serif; margin: 30px 0 6px; }
     p, li { color: var(--text-2); }
     a { color: var(--accent); }
-    .updated { margin: 0 0 20px; font-size: 13px; }
+    code { font-size: 13px; padding: 1px 6px; border-radius: 6px; background: rgba(99, 102, 241, .12); color: var(--text); }
+    .updated { margin: 0 0 22px; font-size: 13px; }
     @media (max-width: 800px) { main { margin: 0; border-radius: 0; border: 0; padding: 24px 16px; } }
   </style>
 </head>
 <body>
   <main>
+    <a class="brand" href="./"><i></i>TextVision <b>AI</b></a>
     <h1>Privacy Policy</h1>
     <p class="updated">TextVision AI · Last updated 12 October 2026</p>
 
