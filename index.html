@@ -15,117 +15,67 @@
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs><rect width="32" height="32" rx="8" class="brand-bg"/><path d="M8 11V8h3M21 8h3v3M24 21v3h-3M11 24H8v-3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M12 14h8M12 18h5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
-      <div>
-        <h1><span class="brand-name">TextVision</span> <span class="ai-badge">AI</span></h1>
-        <p class="tagline">Smart text extraction from images and PDFs. Runs in your browser, so your files never leave your device. <a href="privacy.html">Privacy</a></p>
-      </div>
-    </div>
-    <div class="topbar-actions">
-      <span id="engineStatus" class="engine-status" data-state="idle"><span class="dot"></span><span class="label">Engine idle</span></span>
-      <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      </button>
-    </div>
-  </header>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs>
+  </svg>
 
-  <main class="layout">
-    <!-- Left: input + file queue + settings -->
-    <aside class="panel sidebar">
-      <section>
-        <label id="dropZone" class="dropzone" tabindex="0">
-          <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-          <strong>Drop images or PDFs</strong>
-          <span>or click to browse · paste with Ctrl+V</span>
-          <span class="formats">PNG, JPG, WEBP, BMP, GIF, PDF</span>
-        </label>
-        <div class="input-actions">
-          <button id="driveBtn" class="btn btn-ghost btn-sm drive-btn" type="button" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3h7l6 10.5-3.5 6H5.5L2 13.5z"/><path d="M8.5 3 15 13.5H2M15.5 3 9 13.5l-3.5 6M22 13.5H9"/></svg>
-            Google Drive
+  <main class="bento">
+    <!-- Hero -->
+    <header class="tile tile-hero">
+      <div class="hero-top">
+        <div class="brand">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" class="brand-bg"/><path d="M8 11V8h3M21 8h3v3M24 21v3h-3M11 24H8v-3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M12 14h8M12 18h5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <span class="brand-mark">TextVision <span class="ai-badge">AI</span></span>
+        </div>
+        <div class="hero-actions">
+          <span id="engineStatus" class="engine-status" data-state="idle"><span class="dot"></span><span class="label">Engine idle</span></span>
+          <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
-          <label class="btn btn-ghost btn-sm">
-            <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
-            Camera
-          </label>
-          <button id="sampleBtn" class="btn btn-ghost btn-sm" type="button">Try a sample</button>
         </div>
-      </section>
-
-      <section class="queue-section">
-        <div class="section-head">
-          <h2>Files <span id="fileCount" class="count">0</span></h2>
-          <button id="clearAllBtn" class="link-btn" type="button" disabled>Clear all</button>
-        </div>
-        <ul id="fileList" class="file-list" aria-label="Files to recognize"></ul>
-        <p id="emptyQueue" class="muted small">No files yet.</p>
-      </section>
-
-      <section class="settings">
-        <h2>Recognition settings</h2>
-
-        <div class="field">
-          <label for="langSelect">Languages</label>
-          <div id="langChips" class="chips"></div>
-          <select id="langSelect" aria-label="Add a language"></select>
-        </div>
-
-        <div class="field">
-          <label for="psmSelect">Page layout</label>
-          <select id="psmSelect">
-            <option value="3">Automatic (default)</option>
-            <option value="4">Single column of text</option>
-            <option value="6">Single uniform block</option>
-            <option value="11">Sparse text (signs, labels)</option>
-            <option value="7">Single line</option>
-            <option value="8">Single word</option>
-            <option value="10">Single character</option>
-          </select>
-        </div>
-
-        <details class="field-group">
-          <summary>Image preprocessing</summary>
-          <div class="field">
-            <label for="scaleSelect">Upscale</label>
-            <select id="scaleSelect">
-              <option value="auto">Auto (small images ×2)</option>
-              <option value="1">None</option>
-              <option value="1.5">×1.5</option>
-              <option value="2">×2</option>
-              <option value="3">×3</option>
-            </select>
-          </div>
-          <label class="check"><input id="optGray" type="checkbox" checked> Grayscale</label>
-          <label class="check"><input id="optContrast" type="checkbox" checked> Auto contrast</label>
-          <label class="check"><input id="optBinarize" type="checkbox"> Black &amp; white (Otsu threshold)</label>
-          <label class="check"><input id="optInvert" type="checkbox"> Invert colours (light text on dark)</label>
-          <label class="check"><input id="optDeskew" type="checkbox" checked> Auto-straighten tilted text</label>
-        </details>
-
-        <details class="field-group">
-          <summary>Advanced</summary>
-          <div class="field">
-            <label for="whitelist">Only allow these characters</label>
-            <input id="whitelist" type="text" placeholder="e.g. 0123456789.-" spellcheck="false" autocomplete="off">
-          </div>
-          <label class="check"><input id="optSpaces" type="checkbox" checked> Keep spacing between words</label>
-          <div class="field">
-            <label for="confThreshold">Highlight words below <output id="confThresholdOut">60</output>% confidence</label>
-            <input id="confThreshold" type="range" min="0" max="100" step="5" value="60">
-          </div>
-        </details>
-      </section>
-
-      <div class="run-bar">
-        <button id="runAllBtn" class="btn btn-primary" type="button" disabled>Recognize all</button>
       </div>
-    </aside>
+      <h1>Smart text extraction<br>from images and PDFs.</h1>
+      <p class="tagline">Runs entirely in your browser, so your files never leave your device.</p>
+      <ul class="hero-pills" aria-label="Highlights">
+        <li>22 languages</li><li>PDF pages</li><li>Google Drive</li><li>Searchable PDF export</li>
+      </ul>
+    </header>
 
-    <!-- Centre: preview -->
-    <section class="panel viewer">
+    <!-- Stats -->
+    <section class="tile tile-stats" aria-label="Last result">
+      <div class="tile-label">Last result</div>
+      <div id="stats" class="stats is-empty">
+        <div class="stat stat-main"><b id="statConf">–</b><span>confidence</span></div>
+        <div class="stat"><b id="statWords">–</b><span>words</span></div>
+        <div class="stat"><b id="statTime">–</b><span>time</span></div>
+      </div>
+    </section>
+
+    <!-- Upload -->
+    <section class="tile tile-upload">
+      <div class="tile-label">Add files</div>
+      <label id="dropZone" class="dropzone" tabindex="0">
+        <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <strong>Drop images or PDFs</strong>
+        <span>or click to browse · paste with Ctrl+V</span>
+        <span class="formats">PNG · JPG · WEBP · BMP · GIF · PDF</span>
+      </label>
+      <div class="input-actions">
+        <button id="driveBtn" class="btn btn-sm drive-btn" type="button" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 3h7l6 10.5-3.5 6H5.5L2 13.5z"/><path d="M8.5 3 15 13.5H2M15.5 3 9 13.5l-3.5 6M22 13.5H9"/></svg>
+          Google Drive
+        </button>
+        <label class="btn btn-sm">
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+          Camera
+        </label>
+        <button id="sampleBtn" class="btn btn-sm" type="button">Try a sample</button>
+      </div>
+    </section>
+
+    <!-- Viewer -->
+    <section class="tile tile-viewer">
       <div class="viewer-toolbar">
         <div class="seg" role="group" aria-label="Preview mode">
           <button type="button" class="seg-btn active" data-view="original">Original</button>
@@ -163,20 +113,15 @@
       <p id="imageMeta" class="image-meta muted small"></p>
     </section>
 
-    <!-- Right: results -->
-    <section class="panel results">
+    <!-- Results -->
+    <section class="tile tile-results">
       <div class="results-head">
+        <div class="tile-label">Recognized text</div>
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab active" data-tab="text" aria-selected="true">Text</button>
           <button type="button" role="tab" class="tab" data-tab="words" aria-selected="false">Words</button>
         </div>
-        <div class="stats" id="stats" hidden>
-          <span class="stat"><b id="statConf">–</b> confidence</span>
-          <span class="stat"><b id="statWords">–</b> words</span>
-          <span class="stat"><b id="statTime">–</b></span>
-        </div>
       </div>
-
       <div class="tab-panel" data-panel="text">
         <textarea id="resultText" class="result-text" placeholder="Recognized text will appear here. You can edit it before copying or downloading." spellcheck="false"></textarea>
       </div>
@@ -189,11 +134,91 @@
           <p id="wordsEmpty" class="muted small pad">Run recognition to see individual words with their confidence scores.</p>
         </div>
       </div>
+    </section>
 
+    <!-- Files -->
+    <section class="tile tile-files">
+      <div class="section-head">
+        <div class="tile-label">Files <span id="fileCount" class="count">0</span></div>
+        <button id="clearAllBtn" class="link-btn" type="button" disabled>Clear all</button>
+      </div>
+      <ul id="fileList" class="file-list" aria-label="Files to recognize"></ul>
+      <p id="emptyQueue" class="muted small empty-note">No files yet.</p>
+      <button id="runAllBtn" class="btn btn-primary run-all" type="button" disabled>Recognize all</button>
+    </section>
+
+    <!-- Language & layout -->
+    <section class="tile tile-lang">
+      <div class="tile-label">Language &amp; layout</div>
+      <div class="field">
+        <label for="langSelect">Languages</label>
+        <div id="langChips" class="chips"></div>
+        <select id="langSelect" aria-label="Add a language"></select>
+      </div>
+      <div class="field">
+        <label for="psmSelect">Page layout</label>
+        <select id="psmSelect">
+          <option value="3">Automatic (default)</option>
+          <option value="4">Single column of text</option>
+          <option value="6">Single uniform block</option>
+          <option value="11">Sparse text (signs, labels)</option>
+          <option value="7">Single line</option>
+          <option value="8">Single word</option>
+          <option value="10">Single character</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Image cleanup -->
+    <section class="tile tile-pre">
+      <div class="tile-label">Image cleanup</div>
+      <div class="field">
+        <label for="scaleSelect">Upscale</label>
+        <select id="scaleSelect">
+          <option value="auto">Auto (small images ×2)</option>
+          <option value="1">None</option>
+          <option value="1.5">×1.5</option>
+          <option value="2">×2</option>
+          <option value="3">×3</option>
+        </select>
+      </div>
+      <label class="check"><input id="optGray" type="checkbox" checked> Grayscale</label>
+      <label class="check"><input id="optContrast" type="checkbox" checked> Auto contrast</label>
+      <label class="check"><input id="optBinarize" type="checkbox"> Black &amp; white (Otsu)</label>
+      <label class="check"><input id="optInvert" type="checkbox"> Invert (light text on dark)</label>
+      <label class="check"><input id="optDeskew" type="checkbox" checked> Auto-straighten tilted text</label>
+    </section>
+
+    <!-- Fine-tuning -->
+    <section class="tile tile-adv">
+      <div class="tile-label">Fine-tuning</div>
+      <div class="field">
+        <label for="whitelist">Only allow these characters</label>
+        <input id="whitelist" type="text" placeholder="e.g. 0123456789.-" spellcheck="false" autocomplete="off">
+      </div>
+      <label class="check"><input id="optSpaces" type="checkbox" checked> Keep spacing between words</label>
+      <div class="field">
+        <label for="confThreshold">Highlight words below <output id="confThresholdOut">60</output>% confidence</label>
+        <input id="confThreshold" type="range" min="0" max="100" step="5" value="60">
+      </div>
+    </section>
+
+    <!-- Privacy -->
+    <section class="tile tile-privacy">
+      <svg class="privacy-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
+      <p class="privacy-big">100% on-device</p>
+      <p class="privacy-text">Files never leave your browser. Drive files download straight from Google, and nothing is stored.</p>
+      <a class="privacy-link" href="privacy.html">Read the privacy policy →</a>
+    </section>
+
+    <!-- Export -->
+    <section class="tile tile-export">
+      <div class="tile-label">Export</div>
+      <p class="export-note">Copy the text, or download TXT, searchable PDF, JSON, TSV or hOCR.</p>
       <div class="export-bar">
-        <button id="copyBtn" class="btn btn-sm" type="button" disabled>Copy text</button>
+        <button id="copyBtn" class="btn" type="button" disabled>Copy text</button>
         <div class="dropdown">
-          <button id="downloadBtn" class="btn btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" disabled>Download ▾</button>
+          <button id="downloadBtn" class="btn btn-dark" type="button" aria-haspopup="menu" aria-expanded="false" disabled>Download ▾</button>
           <div id="downloadMenu" class="menu" role="menu" hidden>
             <button type="button" role="menuitem" data-export="txt">Plain text (.txt)</button>
             <button type="button" role="menuitem" data-export="pdf">Searchable PDF (.pdf)</button>

@@ -515,12 +515,10 @@ function drawOverlay() {
 
 function renderResults(item) {
   const r = item?.result;
-  el.stats.hidden = !r;
-  if (r) {
-    el.statConf.textContent = `${r.confidence}%`;
-    el.statWords.textContent = r.words.length.toLocaleString();
-    el.statTime.textContent = `${(r.ms / 1000).toFixed(1)}s`;
-  }
+  el.stats.classList.toggle('is-empty', !r);
+  el.statConf.textContent = r ? `${r.confidence}%` : '–';
+  el.statWords.textContent = r ? r.words.length.toLocaleString() : '–';
+  el.statTime.textContent = r ? `${(r.ms / 1000).toFixed(1)}s` : '–';
   el.resultText.value = r ? (item.editedText ?? r.text) : '';
   el.resultText.placeholder = !item
     ? 'Recognized text will appear here. You can edit it before copying or downloading.'
