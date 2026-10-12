@@ -736,6 +736,27 @@ function toggleMenu(open) {
 
 const TRANSLATE_KEY = 'ocr-translate';
 
+const ONLINE_PAIRS_KEY = 'ocr-online-pairs';
+const ONLINE_PAIRS_DAYS = 7;
+
+/** Remembers (for a week) that this browser can't translate a pair on-device, so it isn't retried on every visit. */
+function markOnline(key) {
+  state.onlinePairs.add(key);
+  try {
+    const saved = JSON.parse(localStorage.getItem(ONLINE_PAIRS_KEY) || '{}');
+    saved[key] = Date.now();
+    localStorage.setItem(ONLINE_PAIRS_KEY, JSON.stringify(saved));
+  } catch { /* ignore */ }
+}
+
+function loadOnlinePairs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ONLINE_PAIRS_KEY) || '{}');
+    const cutoff = Date.now() - ONLINE_PAIRS_DAYS * 864e5;
+    for (const [key, at] of Object.entries(saved)) if (at > cutoff) state.onlinePairs.add(key);
+  } catch { /* ignore */ }
+}
+
 function pairKey() {
   return `${el.trFrom.value}>${el.trTo.value}`;
 }
@@ -745,6 +766,7 @@ function usesOnline() {
 }
 
 function initTranslate() {
+  loadOnlinePairs();
   el.trFrom.innerHTML = '<option value="auto">Auto-detect</option>'
     + TR_LANGUAGES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
   el.trTo.innerHTML = TR_LANGUAGES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
@@ -814,7 +836,7 @@ async function runTranslate() {
     } else {
       const status = await onDeviceStatus(source, target);
       if (status === 'unavailable') {
-        state.onlinePairs.add(pairKey());
+        markOnline(pairKey());
         toast(`On-device translation from ${TR_LANGUAGE_NAME[source] || source} to ${TR_LANGUAGE_NAME[target]} isn’t available in this browser. Use "Translate online" if you’re happy to send the text to MyMemory.`);
         return;
       }
@@ -827,7 +849,7 @@ async function runTranslate() {
     console.error(err);
     if (!online && (err?.code === 'stalled' || err?.code === 'failed')) {
       // On-device translation can't run here right now: offer online translation for this pair.
-      state.onlinePairs.add(pairKey());
+      markOnline(pairKey());
       toast(`${err.message} Click “Translate online” to translate with MyMemory instead.`);
     } else if (err?.code === 'activation') {
       toast('Click Translate again to start the on-device language download.');
