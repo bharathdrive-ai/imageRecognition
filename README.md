@@ -95,6 +95,7 @@ js/pdf.js           PDF → page canvases via pdf.js (loaded only when a PDF is 
 js/translate.js     Translation: on-device Translator API, MyMemory fallback with consent
 js/drive.js         Google Drive import: sign-in, Picker, downloads (Google scripts load on demand)
 js/config.js        Google Drive client ID, API key, project number (blank = Drive button hidden)
+testImages/         Sample Telugu images for testing OCR and translation
 js/export.js        Download helpers (txt, json, combined)
 ```
 
