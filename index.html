@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image Text Recognition</title>
+  <meta name="description" content="Extract text from images and PDFs in your browser with Tesseract OCR. Nothing is uploaded to a server.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232563eb'/%3E%3Cpath d='M8 11V8h3M21 8h3v3M24 21v3h-3M11 24H8v-3' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round'/%3E%3Cpath d='M12 14h8M12 18h5' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" class="brand-bg"/><path d="M8 11V8h3M21 8h3v3M24 21v3h-3M11 24H8v-3" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M12 14h8M12 18h5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <div>
+        <h1>Image Text Recognition</h1>
+        <p class="tagline">OCR for images and PDFs. Runs in your browser, so your files never leave your device.</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="engineStatus" class="engine-status" data-state="idle"><span class="dot"></span><span class="label">Engine idle</span></span>
+      <button id="themeToggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left: input + file queue + settings -->
+    <aside class="panel sidebar">
+      <section>
+        <label id="dropZone" class="dropzone" tabindex="0">
+          <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <strong>Drop images or PDFs</strong>
+          <span>or click to browse · paste with Ctrl+V</span>
+          <span class="formats">PNG, JPG, WEBP, BMP, GIF, PDF</span>
+        </label>
+        <div class="input-actions">
+          <label class="btn btn-ghost btn-sm">
+            <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+            Camera
+          </label>
+          <button id="sampleBtn" class="btn btn-ghost btn-sm" type="button">Try a sample</button>
+        </div>
+      </section>
+
+      <section class="queue-section">
+        <div class="section-head">
+          <h2>Files <span id="fileCount" class="count">0</span></h2>
+          <button id="clearAllBtn" class="link-btn" type="button" disabled>Clear all</button>
+        </div>
+        <ul id="fileList" class="file-list" aria-label="Files to recognize"></ul>
+        <p id="emptyQueue" class="muted small">No files yet.</p>
+      </section>
+
+      <section class="settings">
+        <h2>Recognition settings</h2>
+
+        <div class="field">
+          <label for="langSelect">Languages</label>
+          <div id="langChips" class="chips"></div>
+          <select id="langSelect" aria-label="Add a language"></select>
+        </div>
+
+        <div class="field">
+          <label for="psmSelect">Page layout</label>
+          <select id="psmSelect">
+            <option value="3">Automatic (default)</option>
+            <option value="4">Single column of text</option>
+            <option value="6">Single uniform block</option>
+            <option value="11">Sparse text (signs, labels)</option>
+            <option value="7">Single line</option>
+            <option value="8">Single word</option>
+            <option value="10">Single character</option>
+          </select>
+        </div>
+
+        <details class="field-group">
+          <summary>Image preprocessing</summary>
+          <div class="field">
+            <label for="scaleSelect">Upscale</label>
+            <select id="scaleSelect">
+              <option value="auto">Auto (small images ×2)</option>
+              <option value="1">None</option>
+              <option value="1.5">×1.5</option>
+              <option value="2">×2</option>
+              <option value="3">×3</option>
+            </select>
+          </div>
+          <label class="check"><input id="optGray" type="checkbox" checked> Grayscale</label>
+          <label class="check"><input id="optContrast" type="checkbox" checked> Auto contrast</label>
+          <label class="check"><input id="optBinarize" type="checkbox"> Black &amp; white (Otsu threshold)</label>
+          <label class="check"><input id="optInvert" type="checkbox"> Invert colours (light text on dark)</label>
+          <label class="check"><input id="optDeskew" type="checkbox" checked> Auto-straighten tilted text</label>
+        </details>
+
+        <details class="field-group">
+          <summary>Advanced</summary>
+          <div class="field">
+            <label for="whitelist">Only allow these characters</label>
+            <input id="whitelist" type="text" placeholder="e.g. 0123456789.-" spellcheck="false" autocomplete="off">
+          </div>
+          <label class="check"><input id="optSpaces" type="checkbox" checked> Keep spacing between words</label>
+          <div class="field">
+            <label for="confThreshold">Highlight words below <output id="confThresholdOut">60</output>% confidence</label>
+            <input id="confThreshold" type="range" min="0" max="100" step="5" value="60">
+          </div>
+        </details>
+      </section>
+
+      <div class="run-bar">
+        <button id="runAllBtn" class="btn btn-primary" type="button" disabled>Recognize all</button>
+      </div>
+    </aside>
+
+    <!-- Centre: preview -->
+    <section class="panel viewer">
+      <div class="viewer-toolbar">
+        <div class="seg" role="group" aria-label="Preview mode">
+          <button type="button" class="seg-btn active" data-view="original">Original</button>
+          <button type="button" class="seg-btn" data-view="processed">Processed</button>
+        </div>
+        <div class="toolbar-group">
+          <button id="rotateLeftBtn" class="icon-btn sm" type="button" title="Rotate left" aria-label="Rotate left" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 3v6h6"/></svg>
+          </button>
+          <button id="rotateRightBtn" class="icon-btn sm" type="button" title="Rotate right" aria-label="Rotate right" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7M21 3v6h-6"/></svg>
+          </button>
+          <label class="check inline"><input id="showBoxes" type="checkbox" checked> Word boxes</label>
+          <button id="clearRegionBtn" class="link-btn" type="button" hidden>Clear region</button>
+        </div>
+        <button id="runOneBtn" class="btn btn-primary btn-sm" type="button" disabled>Recognize</button>
+      </div>
+
+      <div id="stage" class="stage">
+        <div id="stageEmpty" class="stage-empty">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+          <p>Add an image to get started.</p>
+          <p class="muted small">Tip: drag across the image to recognize just that region.</p>
+        </div>
+        <div id="canvasWrap" class="canvas-wrap" hidden>
+          <canvas id="imageCanvas"></canvas>
+          <canvas id="overlayCanvas"></canvas>
+          <div id="wordTip" class="word-tip" hidden></div>
+        </div>
+        <div id="progressBox" class="progress-box" hidden>
+          <div class="progress-label"><span id="progressText">Working…</span><span id="progressPct">0%</span></div>
+          <div class="progress"><div id="progressBar" class="progress-fill"></div></div>
+        </div>
+      </div>
+      <p id="imageMeta" class="image-meta muted small"></p>
+    </section>
+
+    <!-- Right: results -->
+    <section class="panel results">
+      <div class="results-head">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" class="tab active" data-tab="text" aria-selected="true">Text</button>
+          <button type="button" role="tab" class="tab" data-tab="words" aria-selected="false">Words</button>
+        </div>
+        <div class="stats" id="stats" hidden>
+          <span class="stat"><b id="statConf">–</b> confidence</span>
+          <span class="stat"><b id="statWords">–</b> words</span>
+          <span class="stat"><b id="statTime">–</b></span>
+        </div>
+      </div>
+
+      <div class="tab-panel" data-panel="text">
+        <textarea id="resultText" class="result-text" placeholder="Recognized text will appear here. You can edit it before copying or downloading." spellcheck="false"></textarea>
+      </div>
+      <div class="tab-panel" data-panel="words" hidden>
+        <div class="words-wrap">
+          <table class="words-table">
+            <thead><tr><th>#</th><th>Word</th><th>Confidence</th><th>Line</th></tr></thead>
+            <tbody id="wordsBody"></tbody>
+          </table>
+          <p id="wordsEmpty" class="muted small pad">Run recognition to see individual words with their confidence scores.</p>
+        </div>
+      </div>
+
+      <div class="export-bar">
+        <button id="copyBtn" class="btn btn-sm" type="button" disabled>Copy text</button>
+        <div class="dropdown">
+          <button id="downloadBtn" class="btn btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" disabled>Download ▾</button>
+          <div id="downloadMenu" class="menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-export="txt">Plain text (.txt)</button>
+            <button type="button" role="menuitem" data-export="pdf">Searchable PDF (.pdf)</button>
+            <button type="button" role="menuitem" data-export="json">Words + boxes (.json)</button>
+            <button type="button" role="menuitem" data-export="tsv">Tesseract TSV (.tsv)</button>
+            <button type="button" role="menuitem" data-export="hocr">hOCR (.html)</button>
+            <hr>
+            <button type="button" role="menuitem" data-export="all-txt">All files, combined (.txt)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
