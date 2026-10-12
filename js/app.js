@@ -716,11 +716,8 @@ function applyTheme(theme) {
 const PALETTE_KEY = 'ocr-palette-v2';
 const DEFAULT_PALETTE = 'ocean';
 const PALETTES = [
-  ['classic', 'Classic', 'linear-gradient(135deg, #6366f1, #8b5cf6)'],
-  ['candy', 'Candy', 'conic-gradient(#f472b6, #a78bfa, #60a5fa, #34d399, #facc15, #f472b6)'],
-  ['sunset', 'Sunset', 'linear-gradient(135deg, #fbbf24, #f97316, #db2777)'],
   ['ocean', 'Ocean', 'linear-gradient(135deg, #06b6d4, #3b82f6, #6366f1)'],
-  ['neon', 'Neon', 'conic-gradient(#a3e635, #22d3ee, #f472b6, #fde047, #a3e635)'],
+  ['sunset', 'Sunset', 'linear-gradient(135deg, #fbbf24, #f97316, #db2777)'],
 ];
 
 function applyPalette(name, remember) {

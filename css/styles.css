@@ -577,7 +577,7 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
 .toast { position: fixed; left: 50%; bottom: 28px; z-index: 50; max-width: calc(100% - 32px); padding: 11px 18px; transform: translateX(-50%); border-radius: 14px; background: #14151f; color: #fff; font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg); animation: pop .2s ease-out; }
 
 /* ==========================================================================
-   Colour palettes  ·  <html data-palette="…">
+   Colour palettes  ·  <html data-palette="ocean|sunset"> (Ocean is the default)
    Each palette sets the brand, hero, stats and canvas inputs, plus a hue per
    tile. A tinted tile mixes its hue into the tile colour (--mix), and its
    label and ink are darkened (light mode) or lightened (dark mode) versions
@@ -588,27 +588,6 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   --label: color-mix(in srgb, var(--hue) 62%, var(--text));
   --ink: color-mix(in srgb, var(--hue) 55%, var(--text));
 }
-
-/* Classic: indigo and violet, three tinted tiles */
-:root[data-palette="classic"] .tile-upload  { --hue: #8b5cf6; }
-:root[data-palette="classic"] .tile-privacy { --hue: #10b981; }
-:root[data-palette="classic"] .tile-export  { --hue: #f59e0b; }
-
-/* Candy: pastel rainbow */
-:root[data-palette="candy"] {
-  --p-brand-1: #ec4899; --p-brand-2: #8b5cf6;
-  --p-hero: linear-gradient(120deg, #f472b6 0%, #a78bfa 50%, #60a5fa 100%);
-  --p-stats: #3b0764; --p-stats-dark: #3b0764;
-  --p-bg: #fbf6f0; --p-mix: 24%; --p-mix-dark: 26%;
-}
-:root[data-palette="candy"] .tile-upload  { --hue: #a78bfa; }
-:root[data-palette="candy"] .tile-files   { --hue: #38bdf8; }
-:root[data-palette="candy"] .tile-lang    { --hue: #34d399; }
-:root[data-palette="candy"] .tile-pre     { --hue: #fb923c; }
-:root[data-palette="candy"] .tile-adv     { --hue: #facc15; }
-:root[data-palette="candy"] .tile-privacy { --hue: #4ade80; }
-:root[data-palette="candy"] .tile-export  { --hue: #f472b6; }
-:root[data-palette="candy"] .tile-results { --hue: #c084fc; }
 
 /* Sunset: warm oranges, pinks and amber */
 :root[data-palette="sunset"] {
@@ -641,40 +620,6 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
 :root[data-palette="ocean"] .tile-privacy { --hue: #10b981; }
 :root[data-palette="ocean"] .tile-export  { --hue: #6366f1; }
 :root[data-palette="ocean"] .tile-results { --hue: #67e8f9; }
-
-/* Neon: fully saturated tiles with dark text, in both light and dark mode */
-:root[data-palette="neon"] {
-  --p-brand-1: #7c3aed; --p-brand-2: #db2777;
-  --p-hero: linear-gradient(120deg, #7c3aed 0%, #db2777 60%, #f97316 100%);
-  --p-stats: #0f0f14; --p-stats-dark: #000000;
-  --p-bg: #f1f0ea; --p-mix: 90%; --p-mix-dark: 90%;
-}
-:root[data-palette="neon"] .tile-upload  { --hue: #a3e635; }
-:root[data-palette="neon"] .tile-files   { --hue: #22d3ee; }
-:root[data-palette="neon"] .tile-lang    { --hue: #fde047; }
-:root[data-palette="neon"] .tile-pre     { --hue: #fb7185; }
-:root[data-palette="neon"] .tile-adv     { --hue: #fdba74; }
-:root[data-palette="neon"] .tile-privacy { --hue: #4ade80; }
-:root[data-palette="neon"] .tile-export  { --hue: #f472b6; }
-:root[data-palette="neon"] .tile-results { --hue: #c7d2fe; }
-:root[data-palette="neon"] .tinted {
-  --tile: #ffffff;
-  --tile-2: rgba(255, 255, 255, .6);
-  --tile-3: rgba(0, 0, 0, .08);
-  --text: #14141c;
-  --text-2: #262630;
-  --text-3: #3d3d4a;
-  --border: rgba(0, 0, 0, .12);
-  --border-strong: rgba(0, 0, 0, .24);
-  --label: rgba(20, 20, 28, .72);
-  --ink: #14141c;
-  --good: #065f46;
-  --warn: #92400e;
-  --bad: #b91c1c;
-  --accent: #3b0764;
-  --accent-soft: rgba(20, 20, 28, .1);
-  color: var(--text);
-}
 
 /* Palette picker (hero tile) */
 .palette-picker { display: inline-flex; gap: 6px; padding: 5px; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); }
@@ -722,11 +667,4 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   .engine-status .label { display: none; }
   .tile-viewer { min-height: 460px; padding: 12px; }
   .stat-main b { font-size: 40px; }
-}
-
-/* Classic keeps plain white tiles for everything without a hue */
-:root[data-palette="classic"] :is(.tile-files, .tile-lang, .tile-pre, .tile-adv, .tile-results) {
-  --label: var(--text-3);
-  --ink: var(--text-2);
-  border-color: var(--border);
 }
