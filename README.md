@@ -7,6 +7,30 @@ Everything runs on the user's device. Files are never uploaded; only the OCR eng
 
 **Architecture:** see [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Links
+
+| What | URL |
+| --- | --- |
+| **Live app** | |
+| Vercel | https://imagesearcheasy.vercel.app |
+| GitHub Pages | https://bharathdrive-ai.github.io/imageRecognition/ |
+| Privacy policy | https://imagesearcheasy.vercel.app/privacy.html |
+| **Code and docs** | |
+| GitHub repo | https://github.com/bharathdrive-ai/imageRecognition |
+| Architecture (Claude Doc) | https://claude.ai/code/artifact/9e90526f-4bb2-46ac-bbdb-0727260cb836 |
+| Architecture (in repo) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| **Hosting dashboards** (owner access) | |
+| Vercel project | https://vercel.com/drive2/imagesearcheasy |
+| GitHub Pages settings | https://github.com/bharathdrive-ai/imageRecognition/settings/pages |
+| **Google Cloud**, project `image-text-recognition-511415` (owner access) | |
+| Credentials (OAuth client, API key) | https://console.cloud.google.com/apis/credentials?project=image-text-recognition-511415 |
+| Consent screen / audience | https://console.cloud.google.com/auth/audience?project=image-text-recognition-511415 |
+| Enabled APIs | https://console.cloud.google.com/apis/dashboard?project=image-text-recognition-511415 |
+| **For users** | |
+| Remove the app's Google Drive access | https://myaccount.google.com/permissions |
+| **Local development** | |
+| Local server (`python -m http.server 8790`) | http://localhost:8790 |
+
 ## Features
 
 - **Inputs:** drag & drop, file picker (multiple files), **Google Drive** (My Drive and shared drives, via Google Picker), paste screenshots with Ctrl+V, phone camera, PDFs (each page rendered with pdf.js, up to 50 pages)
