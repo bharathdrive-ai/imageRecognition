@@ -663,7 +663,15 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   }
   .tile { padding: 16px; border-radius: 22px; }
   .tile-hero { padding: 20px; }
-  .hero-top { margin-bottom: 16px; }
+  .hero-top { flex-wrap: wrap; row-gap: 10px; margin-bottom: 16px; }
+  .brand { gap: 8px; }
+  .brand > svg { width: 32px; height: 32px; }
+  .brand-mark { font-size: 16px; }
+  .hero-actions { gap: 6px; }
+  .tile-hero .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
+  .palette-picker { padding: 4px; gap: 5px; }
+  .swatch { width: 20px; height: 20px; }
+  .engine-status { padding: 6px 8px; }
   .engine-status .label { display: none; }
   .tile-viewer { min-height: 460px; padding: 12px; }
   .stat-main b { font-size: 40px; }
