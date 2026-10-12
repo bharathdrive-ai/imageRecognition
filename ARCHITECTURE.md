@@ -1,6 +1,6 @@
 # Architecture
 
-Image Text Recognition is a static, client-side OCR web app. Tesseract.js 7 reads images and PDFs inside the user's browser, so files never leave the device and there is no server, database or build step.
+TextVision AI is a static, client-side OCR web app. Tesseract.js 7 reads images and PDFs inside the user's browser, so files never leave the device and there is no server, database or build step.
 
 | Resource | Link |
 | --- | --- |
