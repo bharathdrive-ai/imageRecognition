@@ -587,7 +587,7 @@ function toast(msg) {
   el.toast.textContent = msg;
   el.toast.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.toast.hidden = true; }, 3800);
+  toastTimer = setTimeout(() => { el.toast.hidden = true; }, Math.max(3800, msg.length * 65));
 }
 
 /* ------------------------------------------------------------------ */
@@ -801,6 +801,7 @@ async function runTranslate() {
   state.translating = true;
   updateTranslateUI();
   const progress = (label, p) => showProgress(label, p);
+  progress(online ? 'Translating online (MyMemory)' : 'Preparing translation', 0);
   try {
     const source = chosenFrom === 'auto' ? await detectLanguage(text, item.result.langs) : chosenFrom;
     if (source === target) {
@@ -824,7 +825,15 @@ async function runTranslate() {
     toast(`Translated to ${TR_LANGUAGE_NAME[target]}.`);
   } catch (err) {
     console.error(err);
-    toast(/fetch|network/i.test(String(err?.message)) ? 'Could not reach the translation service. Check your connection.' : (err?.message || 'Translation failed.'));
+    if (!online && (err?.code === 'stalled' || err?.code === 'failed')) {
+      // On-device translation can't run here right now: offer online translation for this pair.
+      state.onlinePairs.add(pairKey());
+      toast(`${err.message} Click “Translate online” to translate with MyMemory instead.`);
+    } else if (err?.code === 'activation') {
+      toast('Click Translate again to start the on-device language download.');
+    } else {
+      toast(/fetch|network/i.test(String(err?.message)) ? 'Could not reach the translation service. Check your connection.' : (err?.message || 'Translation failed.'));
+    }
   } finally {
     state.translating = false;
     hideProgress();

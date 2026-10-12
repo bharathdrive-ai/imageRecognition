@@ -74,26 +74,56 @@ function paragraphs(text) {
 
 const translators = new Map();
 
+const STALL_MS = 20000;   // no download progress for this long = the browser isn't downloading
+const OVERALL_MS = 180000; // hard cap on a model download
+
+/**
+ * Creates an on-device translator. Some browsers report a pair as "downloadable" but never
+ * start the download, so the promise would wait forever; a watchdog gives up when no
+ * progress arrives, and the error carries code 'stalled' so the UI can offer online translation.
+ */
+function createTranslator(source, target, onProgress) {
+  const controller = new AbortController();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const fail = (message, code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(stall);
+      clearTimeout(overall);
+      controller.abort();
+      reject(Object.assign(new Error(message), { code }));
+    };
+    let stall = setTimeout(() => fail('Your browser didn’t start downloading the on-device language model.', 'stalled'), STALL_MS);
+    const overall = setTimeout(() => fail('The on-device language model didn’t finish downloading.', 'stalled'), OVERALL_MS);
+
+    self.Translator.create({
+      sourceLanguage: source,
+      targetLanguage: target,
+      signal: controller.signal,
+      monitor(m) {
+        m.addEventListener('downloadprogress', (e) => {
+          clearTimeout(stall);
+          stall = setTimeout(() => fail('The on-device language model download stopped making progress.', 'stalled'), STALL_MS);
+          onProgress?.('Downloading language model (first time only)', e.loaded ?? 0);
+        });
+      },
+    }).then((t) => {
+      if (settled) { t.destroy?.(); return; }
+      settled = true;
+      clearTimeout(stall);
+      clearTimeout(overall);
+      resolve(t);
+    }, (err) => fail(err?.message || 'On-device translation could not start.', err?.name === 'NotAllowedError' ? 'activation' : 'failed'));
+  });
+}
+
 export async function translateOnDevice(text, source, target, onProgress) {
   const key = `${source}>${target}`;
   let translator = translators.get(key);
   if (!translator) {
-    const controller = new AbortController();
-    try {
-      translator = await withTimeout(self.Translator.create({
-        sourceLanguage: source,
-        targetLanguage: target,
-        signal: controller.signal,
-        monitor(m) {
-          m.addEventListener('downloadprogress', (e) => onProgress?.('Downloading language model', e.loaded ?? 0));
-        },
-      }), 120000);
-    } catch (err) {
-      controller.abort();
-      throw new Error(err?.message === 'timeout'
-        ? 'The on-device language model didn’t finish downloading. Try again later, or use online translation.'
-        : (err?.message || 'On-device translation could not start.'));
-    }
+    onProgress?.('Preparing on-device translator', 0);
+    translator = await createTranslator(source, target, onProgress);
     translators.set(key, translator);
   }
   const parts = paragraphs(text);
