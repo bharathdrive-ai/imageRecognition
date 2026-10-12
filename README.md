@@ -3,6 +3,10 @@
 A browser-based OCR tool that extracts text from images and PDFs using [Tesseract.js](https://github.com/naptha/tesseract.js) 7.
 Everything runs on the user's device. Files are never uploaded; only the OCR engine and language models are downloaded from a CDN (and cached after first use).
 
+**Live:** [imagesearcheasy.vercel.app](https://imagesearcheasy.vercel.app/) (Vercel) · [bharathdrive-ai.github.io/imageRecognition](https://bharathdrive-ai.github.io/imageRecognition/) (GitHub Pages)
+
+**Architecture:** see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Features
 
 - **Inputs:** drag & drop, file picker (multiple files), paste screenshots with Ctrl+V, phone camera, PDFs (each page rendered with pdf.js, up to 50 pages)
@@ -26,7 +30,12 @@ Then open http://localhost:8790.
 
 ## Deploy
 
-Push to `main` and enable **GitHub Pages** (Settings → Pages → Deploy from branch → `main` / root). Any static host (Vercel, Netlify, Cloudflare Pages) works the same way.
+A push to `main` deploys to both hosts automatically:
+
+- **Vercel:** project `imagesearcheasy` (team driveAI), connected through the Vercel GitHub app, preset "Other", no build command → https://imagesearcheasy.vercel.app/
+- **GitHub Pages:** deploy from branch `main` / root → https://bharathdrive-ai.github.io/imageRecognition/
+
+Any other static host (Netlify, Cloudflare Pages) works the same way.
 
 ## Project structure
 
