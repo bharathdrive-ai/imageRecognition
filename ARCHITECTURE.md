@@ -143,3 +143,22 @@ Runtime dependencies are pinned and served by jsDelivr: `tesseract.js@7.0.0`, `t
 - The first run needs a network connection to download the engine.
 
 Possible improvements: a 2–4 worker scheduler, a merged multi-page searchable PDF, offline support with self-hosted models and a service worker, preprocessing in a Web Worker, several regions per image, and an optional (clearly marked) cloud fallback for handwriting.
+
+## Links
+
+Dashboard and Google Cloud links open only for the owner account.
+
+| Area | What | URL |
+| --- | --- | --- |
+| Live app | Vercel | https://imagesearcheasy.vercel.app |
+| Live app | GitHub Pages | https://bharathdrive-ai.github.io/imageRecognition/ |
+| Live app | Privacy policy | https://imagesearcheasy.vercel.app/privacy.html |
+| Code and docs | GitHub repo | https://github.com/bharathdrive-ai/imageRecognition |
+| Code and docs | Architecture (Claude Doc) | https://claude.ai/code/artifact/9e90526f-4bb2-46ac-bbdb-0727260cb836 |
+| Hosting | Vercel project | https://vercel.com/drive2/imagesearcheasy |
+| Hosting | GitHub Pages settings | https://github.com/bharathdrive-ai/imageRecognition/settings/pages |
+| Google Cloud | Credentials (OAuth client, API key) | https://console.cloud.google.com/apis/credentials?project=image-text-recognition-511415 |
+| Google Cloud | Consent screen and audience | https://console.cloud.google.com/auth/audience?project=image-text-recognition-511415 |
+| Google Cloud | Enabled APIs | https://console.cloud.google.com/apis/dashboard?project=image-text-recognition-511415 |
+| Users | Remove the app's Drive access | https://myaccount.google.com/permissions |
+| Local | Dev server (`python -m http.server 8790`) | http://localhost:8790 |
