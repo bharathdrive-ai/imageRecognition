@@ -41,7 +41,8 @@ Everything runs on the user's device. Files are never uploaded; only the OCR eng
 - **Preprocessing:** auto-upscale, grayscale, auto contrast, Otsu black-&-white thresholding, invert (light text on dark), 90° rotation, automatic deskew of tilted scans. Toggle **Original / Processed** to see what the engine sees
 - **Region OCR:** drag a box on the image to read only that area
 - **Results:** editable text, mean confidence, per-word confidence table, colour-coded word boxes over the image (hover for word + confidence), adjustable low-confidence threshold
-- **Exports:** plain text, **searchable PDF**, JSON (words + bounding boxes), Tesseract TSV, hOCR, and a combined text file for all files in the batch
+- **Translate** recognized text between English and Indian languages (Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Urdu). Uses the browser's built-in on-device translator when available (Chrome/Edge desktop); otherwise, only when the user clicks **Translate online**, the free MyMemory API.
+- **Exports:** plain text, **searchable PDF**, JSON (words + bounding boxes), Tesseract TSV, hOCR, the translation, and a combined text file for all files in the batch
 - Batch queue, light/dark theme, mobile layout, settings remembered between visits
 
 ## Run locally
@@ -91,6 +92,7 @@ js/app.js           State, file handling, rendering, overlay interaction, export
 js/ocr.js           Tesseract.js worker wrapper (lazy init, language switching, TSV parsing)
 js/preprocess.js    Canvas preprocessing (scale, grayscale, contrast, Otsu, invert, rotate)
 js/pdf.js           PDF → page canvases via pdf.js (loaded only when a PDF is added)
+js/translate.js     Translation: on-device Translator API, MyMemory fallback with consent
 js/drive.js         Google Drive import: sign-in, Picker, downloads (Google scripts load on demand)
 js/config.js        Google Drive client ID, API key, project number (blank = Drive button hidden)
 js/export.js        Download helpers (txt, json, combined)

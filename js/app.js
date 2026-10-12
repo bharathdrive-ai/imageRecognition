@@ -3,6 +3,10 @@ import { recognize, isEngineLoaded } from './ocr.js';
 import { renderPdf } from './pdf.js';
 import { download, baseName, toJson, combinedText } from './export.js';
 import { driveConfigured, preloadDrive, importFromDrive } from './drive.js';
+import {
+  LANGUAGES as TR_LANGUAGES, LANGUAGE_NAME as TR_LANGUAGE_NAME, onDeviceAvailable, onDeviceStatus,
+  detectLanguage, translateOnDevice, translateOnline,
+} from './translate.js';
 
 const LANGUAGES = [
   ['eng', 'English'], ['hin', 'Hindi'], ['tam', 'Tamil'], ['tel', 'Telugu'], ['kan', 'Kannada'],
@@ -32,6 +36,8 @@ const el = {
   resultText: $('resultText'), wordsBody: $('wordsBody'), wordsEmpty: $('wordsEmpty'),
   copyBtn: $('copyBtn'), downloadBtn: $('downloadBtn'), downloadMenu: $('downloadMenu'),
   engineStatus: $('engineStatus'), themeToggle: $('themeToggle'), toast: $('toast'),
+  trFrom: $('trFrom'), trTo: $('trTo'), trSwap: $('trSwap'), translateBtn: $('translateBtn'), trEngine: $('trEngine'),
+  translationText: $('translationText'), translationMeta: $('translationMeta'),
 };
 
 const state = {
@@ -40,6 +46,8 @@ const state = {
   view: 'original',
   langs: ['eng'],
   running: false,
+  translating: false,
+  onlinePairs: new Set(), // language pairs the browser can't translate on-device
   highlight: -1,
 };
 let nextId = 1;
@@ -192,6 +200,7 @@ function addItem(name, canvas) {
     message: '',
     result: null,
     editedText: null,
+    translation: null,
     region: null,
     preview: null,
     previewKey: '',
@@ -287,6 +296,7 @@ async function recognizeItem(item) {
     });
     item.result = result;
     item.editedText = null;
+    item.translation = null;
     item.status = 'done';
   } catch (err) {
     console.error(err);
@@ -402,6 +412,7 @@ function renderControls() {
   const hasResult = !!item?.result;
   el.copyBtn.disabled = !hasResult;
   el.downloadBtn.disabled = !state.items.some((i) => i.result);
+  updateTranslateUI();
 }
 
 function displayCanvasFor(item) {
@@ -526,6 +537,13 @@ function renderResults(item) {
     : item.status === 'error' ? `Recognition failed: ${item.message}`
     : r ? 'No text was found. Try a different page layout, upscaling, or "Invert colours".'
     : 'Click "Recognize" to extract text from this image.';
+
+  const tr = item?.translation;
+  el.translationText.value = tr ? tr.text : '';
+  el.translationMeta.hidden = !tr;
+  if (tr) {
+    el.translationMeta.textContent = `${TR_LANGUAGE_NAME[tr.source] || tr.source} → ${TR_LANGUAGE_NAME[tr.target]} · ${tr.engine === 'device' ? 'translated on this device' : 'translated online via MyMemory'}`;
+  }
 
   const t = Number(el.confThreshold.value);
   el.wordsBody.innerHTML = '';
@@ -657,17 +675,20 @@ function currentText(item) {
   return item.editedText ?? item.result.text;
 }
 
+const activeTab = () => document.querySelector('.tab.active')?.dataset.tab;
+
 async function copyText() {
   const item = activeItem();
   if (!item?.result) return;
-  const text = currentText(item);
+  const copyTranslation = activeTab() === 'translation' && item.translation;
+  const text = copyTranslation ? item.translation.text : currentText(item);
   try {
     await navigator.clipboard.writeText(text);
   } catch {
-    el.resultText.select();
+    (copyTranslation ? el.translationText : el.resultText).select();
     document.execCommand('copy');
   }
-  toast('Text copied to clipboard.');
+  toast(copyTranslation ? 'Translation copied to clipboard.' : 'Text copied to clipboard.');
 }
 
 function exportAs(kind) {
@@ -687,6 +708,9 @@ function exportAs(kind) {
     case 'pdf':
       if (!r.pdf?.length) return toast('A searchable PDF was not produced for this file.');
       return download(new Blob([r.pdf], { type: 'application/pdf' }), `${stem}-searchable.pdf`);
+    case 'translation':
+      if (!item.translation) return toast('Translate this file first.');
+      return download(item.translation.text, `${stem}-${item.translation.target}.txt`, 'text/plain;charset=utf-8');
   }
 }
 
@@ -699,8 +723,113 @@ function toggleMenu(open) {
     el.downloadMenu.querySelectorAll('[data-export]').forEach((b) => {
       b.disabled = b.dataset.export === 'all-txt'
         ? !state.items.some((i) => i.result)
-        : !item?.result || (b.dataset.export === 'pdf' && !item.result.pdf?.length);
+        : !item?.result
+          || (b.dataset.export === 'pdf' && !item.result.pdf?.length)
+          || (b.dataset.export === 'translation' && !item.translation);
     });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Translate                                                           */
+/* ------------------------------------------------------------------ */
+
+const TRANSLATE_KEY = 'ocr-translate';
+
+function pairKey() {
+  return `${el.trFrom.value}>${el.trTo.value}`;
+}
+
+function usesOnline() {
+  return !onDeviceAvailable() || state.onlinePairs.has(pairKey());
+}
+
+function initTranslate() {
+  el.trFrom.innerHTML = '<option value="auto">Auto-detect</option>'
+    + TR_LANGUAGES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+  el.trTo.innerHTML = TR_LANGUAGES.map(([c, n]) => `<option value="${c}">${n}</option>`).join('');
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(TRANSLATE_KEY) || 'null'); } catch { /* ignore */ }
+  el.trFrom.value = saved?.from && (saved.from === 'auto' || TR_LANGUAGE_NAME[saved.from]) ? saved.from : 'auto';
+  el.trTo.value = saved?.to && TR_LANGUAGE_NAME[saved.to] ? saved.to : 'ta';
+
+  const remember = () => {
+    try { localStorage.setItem(TRANSLATE_KEY, JSON.stringify({ from: el.trFrom.value, to: el.trTo.value })); } catch { /* ignore */ }
+    updateTranslateUI();
+  };
+  el.trFrom.addEventListener('change', remember);
+  el.trTo.addEventListener('change', remember);
+  el.trSwap.addEventListener('click', () => {
+    const from = el.trFrom.value;
+    el.trFrom.value = el.trTo.value;
+    el.trTo.value = from === 'auto' ? (el.trTo.value === 'en' ? 'ta' : 'en') : from;
+    remember();
+  });
+  el.translateBtn.addEventListener('click', runTranslate);
+  el.translationText.addEventListener('input', () => {
+    const item = activeItem();
+    if (item?.translation) item.translation.text = el.translationText.value;
+  });
+  updateTranslateUI();
+}
+
+function updateTranslateUI() {
+  const item = activeItem();
+  const hasText = !!(item?.result && currentText(item).trim());
+  const online = usesOnline();
+  el.translateBtn.disabled = !hasText || state.running || state.translating;
+  el.translateBtn.textContent = state.translating ? 'Translating…' : online ? 'Translate online' : 'Translate';
+  el.trEngine.classList.toggle('is-online', online);
+  if (!onDeviceAvailable()) {
+    el.trEngine.innerHTML = 'This browser has no built-in translator. <b>Translate online</b> sends the text to the free MyMemory service (translated.net); your image is not sent.';
+  } else if (online) {
+    el.trEngine.innerHTML = 'Your browser can’t translate this language pair on the device. <b>Translate online</b> sends the text to MyMemory (translated.net).';
+  } else {
+    el.trEngine.innerHTML = 'Runs <b>on this device</b> with your browser’s built-in translator. Each language pair downloads once.';
+  }
+}
+
+async function runTranslate() {
+  const item = activeItem();
+  if (!item?.result || state.translating) return;
+  const text = currentText(item).trim();
+  if (!text) return toast('There is no text to translate.');
+
+  const chosenFrom = el.trFrom.value;
+  const target = el.trTo.value;
+  const online = usesOnline();
+  state.translating = true;
+  updateTranslateUI();
+  const progress = (label, p) => showProgress(label, p);
+  try {
+    const source = chosenFrom === 'auto' ? await detectLanguage(text, item.result.langs) : chosenFrom;
+    if (source === target) {
+      toast(`The text already looks like ${TR_LANGUAGE_NAME[target]}. Pick a different target language.`);
+      return;
+    }
+    let translated;
+    if (online) {
+      translated = await translateOnline(text, source, target, progress);
+    } else {
+      const status = await onDeviceStatus(source, target);
+      if (status === 'unavailable') {
+        state.onlinePairs.add(pairKey());
+        toast(`On-device translation from ${TR_LANGUAGE_NAME[source] || source} to ${TR_LANGUAGE_NAME[target]} isn’t available in this browser. Use "Translate online" if you’re happy to send the text to MyMemory.`);
+        return;
+      }
+      translated = await translateOnDevice(text, source, target, progress);
+    }
+    item.translation = { text: translated, source, target, engine: online ? 'online' : 'device' };
+    document.querySelector('.tab[data-tab="translation"]')?.click();
+    toast(`Translated to ${TR_LANGUAGE_NAME[target]}.`);
+  } catch (err) {
+    console.error(err);
+    toast(/fetch|network/i.test(String(err?.message)) ? 'Could not reach the translation service. Check your connection.' : (err?.message || 'Translation failed.'));
+  } finally {
+    state.translating = false;
+    hideProgress();
+    renderResults(activeItem());
+    updateTranslateUI();
   }
 }
 
@@ -765,6 +894,7 @@ function effectiveTheme() {
 function init() {
   try { applyTheme(localStorage.getItem(THEME_KEY)); } catch { /* ignore */ }
   initPalette();
+  initTranslate();
   loadSettings();
   el.confThresholdOut.textContent = el.confThreshold.value;
   renderLanguages();
@@ -854,6 +984,7 @@ function init() {
     item.thumb = makeThumb(item.base);
     item.result = null;
     item.editedText = null;
+    item.translation = null;
     item.region = null;
     item.preview = null;
     item.status = 'queued';
@@ -892,6 +1023,7 @@ function init() {
   el.resultText.addEventListener('input', () => {
     const item = activeItem();
     if (item?.result) item.editedText = el.resultText.value;
+    updateTranslateUI();
   });
 
   // Settings

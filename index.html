@@ -36,7 +36,7 @@
         </div>
       </div>
       <h1>Smart text extraction<br>from images and PDFs.</h1>
-      <p class="tagline">Runs entirely in your browser, so your files never leave your device.</p>
+      <p class="tagline">Runs entirely in your browser, so your files never leave your device. <a href="privacy.html">Privacy policy</a></p>
       <ul class="hero-pills" aria-label="Highlights">
         <li>22 languages</li><li>PDF pages</li><li>Google Drive</li><li>Searchable PDF export</li>
       </ul>
@@ -121,6 +121,7 @@
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab active" data-tab="text" aria-selected="true">Text</button>
           <button type="button" role="tab" class="tab" data-tab="words" aria-selected="false">Words</button>
+          <button type="button" role="tab" class="tab" data-tab="translation" aria-selected="false">Translation</button>
         </div>
       </div>
       <div class="tab-panel" data-panel="text">
@@ -134,6 +135,10 @@
           </table>
           <p id="wordsEmpty" class="muted small pad">Run recognition to see individual words with their confidence scores.</p>
         </div>
+      </div>
+      <div class="tab-panel" data-panel="translation" hidden>
+        <p id="translationMeta" class="translation-meta" hidden></p>
+        <textarea id="translationText" class="result-text" placeholder="Use the Translate tile to translate the recognized text. The result appears here." spellcheck="false"></textarea>
       </div>
     </section>
 
@@ -205,11 +210,23 @@
     </section>
 
     <!-- Privacy -->
-    <section class="tile tile-privacy tinted">
-      <svg class="privacy-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>
-      <p class="privacy-big">100% on-device</p>
-      <p class="privacy-text">Files never leave your browser. Drive files download straight from Google, and nothing is stored.</p>
-      <a class="privacy-link" href="privacy.html">Read the privacy policy →</a>
+    <section class="tile tile-translate tinted">
+      <div class="tile-label">Translate</div>
+      <div class="translate-langs">
+        <div class="field">
+          <label for="trFrom">From</label>
+          <select id="trFrom"></select>
+        </div>
+        <button id="trSwap" class="icon-btn sm swap-btn" type="button" title="Swap languages" aria-label="Swap languages">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13m0 0-4-4m4 4-4 4M17 17H4m0 0 4 4m-4-4 4-4"/></svg>
+        </button>
+        <div class="field">
+          <label for="trTo">To</label>
+          <select id="trTo"></select>
+        </div>
+      </div>
+      <button id="translateBtn" class="btn btn-primary translate-btn" type="button" disabled>Translate</button>
+      <p id="trEngine" class="tr-engine"></p>
     </section>
 
     <!-- Export -->
@@ -226,6 +243,7 @@
             <button type="button" role="menuitem" data-export="json">Words + boxes (.json)</button>
             <button type="button" role="menuitem" data-export="tsv">Tesseract TSV (.tsv)</button>
             <button type="button" role="menuitem" data-export="hocr">hOCR (.html)</button>
+            <button type="button" role="menuitem" data-export="translation">Translation (.txt)</button>
             <hr>
             <button type="button" role="menuitem" data-export="all-txt">All files, combined (.txt)</button>
           </div>

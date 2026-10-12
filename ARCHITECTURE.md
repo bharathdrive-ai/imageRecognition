@@ -33,6 +33,7 @@ flowchart TB
     cdn["jsDelivr CDN<br/>tesseract.js 7.0.0, core 7 WASM,<br/>22 language models, pdf.js 4.10.38"] -- "code + models" --> worker
     fonts["Google Fonts<br/>Inter, JetBrains Mono"] --> app
     google["Google sign-in, Picker, Drive API<br/>only for the Drive button"] <-- "picked files" --> app
+    mymemory["MyMemory translation API<br/>only on Translate online"] <-- "text only, opt-in" --> app
 ```
 
 ## Components
@@ -46,6 +47,7 @@ flowchart TB
     app --> ocr["ocr.js<br/>one Tesseract worker,<br/>jobs in order, TSV to words"]
     app --> pdf["pdf.js<br/>PDF pages to canvases<br/>(up to 50, ~2200 px)"]
     app --> drive["drive.js<br/>Google sign-in, Picker,<br/>downloads (reads config.js)"]
+    app --> tr["translate.js<br/>on-device Translator API,<br/>MyMemory fallback (opt-in)"]
     app --> exp["export.js<br/>TXT, JSON, combined downloads"]
     ocr -- "window.Tesseract" --> tess["Tesseract.js 7"]
     pdf -- "dynamic import()" --> pdfjs["pdfjs-dist 4.10.38"]
@@ -62,6 +64,7 @@ flowchart TB
 | `js/pdf.js` | Lazily imports pdf.js and renders up to 50 pages at about 2200 px wide |
 | `js/drive.js` | Loads Google's sign-in and Picker scripts on demand, gets a `drive.file` token, shows the Picker, downloads picked files from the Drive API |
 | `js/config.js` | Public Google client ID, API key and project number; blank values hide the Drive button |
+| `js/translate.js` | Translation between English and Indian languages: browser Translator API on the device (with timeouts), else MyMemory after the user clicks **Translate online** |
 | `js/export.js` | Blob downloads, safe file names, JSON and combined-text builders |
 | `privacy.html` | Privacy policy linked from the header and from the Google consent screen |
 
@@ -122,6 +125,7 @@ Settings (`ocr-settings-v1`) and the theme (`ocr-theme`) are kept in `localStora
 | Deskew | Tesseract `rotateAuto` | Measured by the engine from the text lines | Overlay must rotate boxes back |
 | PDF input | pdf.js loaded on demand | Keeps the first load small | 50-page limit |
 | Searchable PDF | Tesseract's PDF renderer | Exact text layer with no extra code | Built for every job |
+| Translation | Browser Translator API on the device; MyMemory only on an explicit **Translate online** click | Keeps text private where the browser can translate locally; works everywhere else | Online mode sends text to a third party (disclosed in the UI and privacy policy); free tier limit about 5,000 characters a day |
 | Google Drive import | Google Picker, `drive.file` scope, browser fetches picked files | No server; narrowest Drive scope, so no Google review | Needs a Google Cloud project and a sign-in pop-up; HEIC photos and Google Docs files can't be read |
 
 ## Deployment
