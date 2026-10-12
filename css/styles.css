@@ -98,6 +98,7 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .brand > svg path { fill: none; }
 .brand-bg { fill: var(--accent); }
 .tagline { margin: 1px 0 0; color: var(--text-3); font-size: 12.5px; }
+.tagline a { color: var(--accent); }
 .topbar-actions { display: flex; align-items: center; gap: 10px; flex: none; }
 
 .engine-status {
