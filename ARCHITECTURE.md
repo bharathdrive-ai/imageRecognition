@@ -10,7 +10,7 @@ Image Text Recognition is a static, client-side OCR web app. Tesseract.js 7 read
 
 ## System context
 
-The browser downloads the app's static files from GitHub Pages or Vercel, and the engine, language models and pdf.js from jsDelivr. The user's images and PDFs are read locally and never uploaded.
+The browser downloads the app's static files from GitHub Pages or Vercel, and the engine, language models and pdf.js from jsDelivr. The user's images and PDFs are read locally and never uploaded. Files picked from Google Drive download straight from Google's Drive API into the browser.
 
 ```mermaid
 flowchart TB
@@ -32,11 +32,12 @@ flowchart TB
     vercel -- "static files" --> app
     cdn["jsDelivr CDN<br/>tesseract.js 7.0.0, core 7 WASM,<br/>22 language models, pdf.js 4.10.38"] -- "code + models" --> worker
     fonts["Google Fonts<br/>Inter, JetBrains Mono"] --> app
+    google["Google sign-in, Picker, Drive API<br/>only for the Drive button"] <-- "picked files" --> app
 ```
 
 ## Components
 
-`app.js` is the only module with state or DOM access. The other four are small single-purpose modules it imports.
+`app.js` is the only module with state or DOM access. The other five are small single-purpose modules it imports.
 
 ```mermaid
 flowchart TB
@@ -44,9 +45,11 @@ flowchart TB
     app --> pre["preprocess.js<br/>rotate, upscale, grayscale,<br/>contrast, Otsu, invert"]
     app --> ocr["ocr.js<br/>one Tesseract worker,<br/>jobs in order, TSV to words"]
     app --> pdf["pdf.js<br/>PDF pages to canvases<br/>(up to 50, ~2200 px)"]
+    app --> drive["drive.js<br/>Google sign-in, Picker,<br/>downloads (reads config.js)"]
     app --> exp["export.js<br/>TXT, JSON, combined downloads"]
     ocr -- "window.Tesseract" --> tess["Tesseract.js 7"]
     pdf -- "dynamic import()" --> pdfjs["pdfjs-dist 4.10.38"]
+    drive -- "on demand" --> google["Google Identity Services<br/>+ Google Picker"]
 ```
 
 | File | Responsibility |
@@ -57,13 +60,16 @@ flowchart TB
 | `js/ocr.js` | Creates and reuses one Tesseract worker, switches languages, sets parameters, serializes jobs, parses TSV |
 | `js/preprocess.js` | Canvas cleanup: 90° rotation, upscaling (max 5000 px), grayscale, contrast stretch, Otsu threshold, invert, dark-image check |
 | `js/pdf.js` | Lazily imports pdf.js and renders up to 50 pages at about 2200 px wide |
+| `js/drive.js` | Loads Google's sign-in and Picker scripts on demand, gets a `drive.file` token, shows the Picker, downloads picked files from the Drive API |
+| `js/config.js` | Public Google client ID, API key and project number; blank values hide the Drive button |
 | `js/export.js` | Blob downloads, safe file names, JSON and combined-text builders |
+| `privacy.html` | Privacy policy linked from the header and from the Google consent screen |
 
 ## Recognition pipeline
 
 ```mermaid
 flowchart LR
-    add["Add a file"] --> isPdf{"PDF?"}
+    add["Add a file<br/>(drop, browse, Drive, paste, camera)"] --> isPdf{"PDF?"}
     isPdf -- yes --> render["pdf.js renders each page"]
     isPdf -- no --> decode["Decode image<br/>(EXIF orientation)"]
     render --> item["File item per image/page"]
@@ -74,7 +80,7 @@ flowchart LR
     parse --> show["Show results<br/>text, word table, overlay, exports"]
 ```
 
-1. **Intake:** PDFs are rendered page by page with pdf.js. Images are decoded with `createImageBitmap`, which applies EXIF orientation. Each page or image becomes a file item.
+1. **Intake:** PDFs are rendered page by page with pdf.js. Images are decoded with `createImageBitmap`, which applies EXIF orientation. Files picked from Google Drive are downloaded first, then follow the same path. Each page or image becomes a file item.
 2. **Preprocess:** `preprocess()` builds a new canvas with the chosen cleanup steps. A selected region becomes a pixel `rectangle` in that canvas.
 3. **Recognize:** `ocr.js` creates the worker on first use and calls `reinitialize` when languages change. It sets the page layout mode, whitelist and spacing, then runs `recognize` with `rotateAuto` and asks for text, TSV, hOCR and PDF output. Logger events drive the progress bar and the status pill.
 4. **Parse:** level-5 TSV rows become words with boxes and confidence. Lines are renumbered across the page.
@@ -116,6 +122,7 @@ Settings (`ocr-settings-v1`) and the theme (`ocr-theme`) are kept in `localStora
 | Deskew | Tesseract `rotateAuto` | Measured by the engine from the text lines | Overlay must rotate boxes back |
 | PDF input | pdf.js loaded on demand | Keeps the first load small | 50-page limit |
 | Searchable PDF | Tesseract's PDF renderer | Exact text layer with no extra code | Built for every job |
+| Google Drive import | Google Picker, `drive.file` scope, browser fetches picked files | No server; narrowest Drive scope, so no Google review | Needs a Google Cloud project and a sign-in pop-up; HEIC photos and Google Docs files can't be read |
 
 ## Deployment
 
@@ -124,6 +131,8 @@ Settings (`ocr-settings-v1`) and the theme (`ocr-theme`) are kept in `localStora
 | Production | GitHub Pages (legacy build, `.nojekyll`) | `main`, repo root |
 | Production | Vercel: team driveAI, project `imagesearcheasy`, preset "Other" | `main` through the Vercel GitHub app |
 | Local | `python -m http.server 8790` | Working copy (`file://` won't load ES modules) |
+
+**Google Cloud (Drive import):** project `image-text-recognition-511415` has the Picker and Drive APIs enabled. Its consent screen is in production with only the `drive.file` scope and links to `privacy.html`. The OAuth web client and the Picker-restricted API key accept requests only from the two live sites and `localhost:8790`.
 
 Runtime dependencies are pinned and served by jsDelivr: `tesseract.js@7.0.0`, `tesseract.js-core@7`, `@tesseract.js-data/<lang>/4.0.0_best_int`, and `pdfjs-dist@4.10.38`.
 
