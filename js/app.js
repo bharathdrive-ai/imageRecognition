@@ -26,7 +26,8 @@ const el = {
   fileList: $('fileList'), fileCount: $('fileCount'), emptyQueue: $('emptyQueue'), clearAllBtn: $('clearAllBtn'),
   langChips: $('langChips'), langSelect: $('langSelect'), psmSelect: $('psmSelect'), scaleSelect: $('scaleSelect'),
   optGray: $('optGray'), optContrast: $('optContrast'), optBinarize: $('optBinarize'), optInvert: $('optInvert'),
-  optDeskew: $('optDeskew'), optSpaces: $('optSpaces'), whitelist: $('whitelist'),
+  optDeskew: $('optDeskew'), optSpaces: $('optSpaces'), whitelist: $('whitelist'), optAutoRun: $('optAutoRun'),
+  searchInput: $('searchInput'), searchSummary: $('searchSummary'), searchResults: $('searchResults'),
   confThreshold: $('confThreshold'), confThresholdOut: $('confThresholdOut'),
   runAllBtn: $('runAllBtn'), runOneBtn: $('runOneBtn'),
   rotateLeftBtn: $('rotateLeftBtn'), rotateRightBtn: $('rotateRightBtn'), showBoxes: $('showBoxes'), clearRegionBtn: $('clearRegionBtn'),
@@ -47,6 +48,8 @@ const state = {
   langs: ['eng'],
   running: false,
   translating: false,
+  autoQueue: [],        // files added while a batch was already running
+  searchQuery: '',
   onlinePairs: new Set(), // language pairs the browser can't translate on-device
   highlight: -1,
 };
@@ -63,6 +66,7 @@ function readSettings() {
     whitelist: el.whitelist.value.trim(),
     preserveSpaces: el.optSpaces.checked,
     deskew: el.optDeskew.checked,
+    autoRun: el.optAutoRun.checked,
     pre: {
       scale: el.scaleSelect.value,
       gray: el.optGray.checked,
@@ -91,6 +95,7 @@ function loadSettings() {
   el.whitelist.value = s.whitelist || '';
   el.optSpaces.checked = s.preserveSpaces !== false;
   el.optDeskew.checked = s.deskew !== false;
+  el.optAutoRun.checked = s.autoRun !== false;
   if (s.pre) {
     el.scaleSelect.value = s.pre.scale || 'auto';
     el.optGray.checked = !!s.pre.gray;
@@ -135,6 +140,7 @@ async function addFiles(files) {
   const list = Array.from(files || []);
   if (!list.length) return;
   let added = 0;
+  const newItems = [];
   for (const file of list) {
     const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
     try {
@@ -143,11 +149,11 @@ async function addFiles(files) {
         const { pages, totalPages } = await renderPdf(file, (done, total) => showProgress(`Reading PDF page ${done} of ${total}`, done / total));
         hideProgress();
         const stem = baseName(file.name);
-        pages.forEach((canvas, i) => addItem(pages.length > 1 ? `${stem} · page ${i + 1}` : file.name, canvas));
+        pages.forEach((canvas, i) => newItems.push(addItem(pages.length > 1 ? `${stem} · page ${i + 1}` : file.name, canvas)));
         added += pages.length;
         if (totalPages > pages.length) toast(`Only the first ${pages.length} of ${totalPages} pages were added.`);
       } else if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp|gif|avif|tiff?)$/i.test(file.name)) {
-        addItem(file.name || 'pasted-image.png', await fileToCanvas(file));
+        newItems.push(addItem(file.name || 'pasted-image.png', await fileToCanvas(file)));
         added++;
       } else {
         toast(`${file.name} isn't an image or PDF.`);
@@ -162,6 +168,10 @@ async function addFiles(files) {
     const active = activeItem();
     if (active && looksDark(active.base) && !el.optInvert.checked) {
       toast('This image looks dark. If the text is light, turn on "Invert colours".');
+    }
+    if (el.optAutoRun.checked && newItems.length) {
+      if (state.running) state.autoQueue.push(...newItems);
+      else runItems(newItems);
     }
   }
 }
@@ -324,6 +334,7 @@ async function runItems(items) {
       await recognizeItem(item);
       if (item.id === state.activeId) renderActive();
       else renderList();
+      refreshSearch();
     }
   } finally {
     state.running = false;
@@ -331,6 +342,10 @@ async function runItems(items) {
   }
   const done = items.filter((i) => i.status === 'done').length;
   if (items.length > 1) toast(`Recognized ${done} of ${items.length} files.`);
+  if (state.autoQueue.length) {
+    const next = state.autoQueue.splice(0).filter((i) => state.items.includes(i) && i.status !== 'done');
+    if (next.length) runItems(next);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -384,6 +399,7 @@ function renderList() {
   el.clearAllBtn.disabled = !state.items.length || state.running;
   el.runAllBtn.disabled = !state.items.length || state.running;
   el.runAllBtn.textContent = state.running ? 'Working…' : state.items.length > 1 ? `Recognize all (${state.items.length})` : 'Recognize all';
+  refreshSearch();
 }
 
 function updateListStatus(item) {
@@ -504,6 +520,27 @@ function drawOverlay() {
       ctx.lineWidth = (i === state.highlight ? lw * 2 : lw) / k;
       ctx.strokeRect(x0, y0, x1 - x0, y1 - y0);
     });
+    ctx.restore();
+  }
+
+  const tokens = searchTokens();
+  if (item.result && tokens.length) {
+    ctx.save();
+    resultTransform(item, ctx);
+    const k = o.width / item.result.width;
+    for (const w of item.result.words) {
+      const word = w.text.toLocaleLowerCase();
+      if (!tokens.some((t) => word.includes(t))) continue;
+      const { x0, y0, x1, y1 } = w.bbox;
+      const pad = 2 / k;
+      ctx.globalAlpha = 0.38;
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = (lw * 1.6) / k;
+      ctx.strokeRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2);
+    }
     ctx.restore();
   }
 
@@ -665,6 +702,138 @@ function showWordTip(e) {
   el.wordTip.style.left = `${e.clientX - wrap.left}px`;
   el.wordTip.style.top = `${e.clientY - wrap.top}px`;
   el.wordTip.hidden = false;
+}
+
+/* ------------------------------------------------------------------ */
+/* Search across all files                                             */
+/* ------------------------------------------------------------------ */
+
+const SNIPPETS_PER_FILE = 3;
+const escapeHtml = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function searchTokens() {
+  return state.searchQuery.toLocaleLowerCase().split(/\s+/).filter(Boolean);
+}
+
+/** Words of the query, matched case-insensitively, with any run of whitespace between them. */
+function searchPattern() {
+  const tokens = state.searchQuery.trim().split(/\s+/).filter(Boolean);
+  return tokens.length ? new RegExp(tokens.map(escapeRegex).join('\\s+'), 'giu') : null;
+}
+
+function snippet(text, index, length) {
+  const start = Math.max(0, index - 40);
+  const end = Math.min(text.length, index + length + 50);
+  const clean = (t) => escapeHtml(t.replace(/\s+/g, ' '));
+  return `${start > 0 ? '… ' : ''}${clean(text.slice(start, index))}<mark>${clean(text.slice(index, index + length))}</mark>${clean(text.slice(index + length, end))}${end < text.length ? ' …' : ''}`;
+}
+
+function refreshSearch() {
+  if (!el.searchResults) return;
+  const keepScroll = el.searchResults.scrollTop;
+  const recognized = state.items.filter((i) => i.result);
+  const pending = state.items.filter((i) => !i.result && i.status !== 'running').length;
+  const running = state.items.some((i) => i.status === 'running');
+  const pendingNote = pending
+    ? ` <b>${pending}</b> file${pending > 1 ? 's' : ''} not recognized yet. <button type="button" class="link-btn" data-search-run>Recognize all</button>`
+    : running ? ' Still recognizing…' : '';
+  el.searchResults.innerHTML = '';
+
+  const pattern = searchPattern();
+  if (!pattern) {
+    el.searchSummary.innerHTML = !state.items.length
+      ? 'Add one or more images, then search across all of their text.'
+      : `Search the text of ${recognized.length} recognized file${recognized.length === 1 ? '' : 's'}.${pendingNote}`;
+    return;
+  }
+
+  let total = 0;
+  let filesHit = 0;
+  for (const item of recognized) {
+    const sources = [['text', currentText(item)]];
+    if (item.translation?.text) sources.push(['translation', item.translation.text]);
+    const hits = [];
+    for (const [where, text] of sources) {
+      for (const m of text.matchAll(pattern)) hits.push({ where, index: m.index, length: m[0].length, text });
+    }
+    if (!hits.length) continue;
+    filesHit++;
+    total += hits.length;
+
+    const li = document.createElement('li');
+    li.className = 'search-file';
+    li.innerHTML = `<div class="search-file-head"><span></span><span class="count">${hits.length}</span></div>`;
+    li.querySelector('.search-file-head span').textContent = item.name;
+    for (const hit of hits.slice(0, SNIPPETS_PER_FILE)) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'search-hit';
+      b.innerHTML = `${hit.where === 'translation' ? '<span class="where">Translation</span>' : ''}${snippet(hit.text, hit.index, hit.length)}`;
+      b.addEventListener('click', () => openSearchHit(item, hit));
+      li.appendChild(b);
+    }
+    if (hits.length > SNIPPETS_PER_FILE) {
+      const more = document.createElement('div');
+      more.className = 'search-more';
+      more.textContent = `+ ${hits.length - SNIPPETS_PER_FILE} more in this file`;
+      li.appendChild(more);
+    }
+    el.searchResults.appendChild(li);
+  }
+
+  el.searchSummary.innerHTML = total
+    ? `<b>${total}</b> match${total === 1 ? '' : 'es'} in <b>${filesHit}</b> of ${recognized.length} file${recognized.length === 1 ? '' : 's'}.${pendingNote}`
+    : `No matches for “${escapeHtml(state.searchQuery.trim())}”.${pendingNote}`;
+  el.searchResults.scrollTop = keepScroll;
+}
+
+/** Opens the file, selects the match in its text, and highlights matching words on the image. */
+function openSearchHit(item, hit) {
+  state.activeId = item.id;
+  state.highlight = -1;
+  renderAll();
+  const tab = document.querySelector(`.tab[data-tab="${hit.where}"]`);
+  if (tab && !tab.classList.contains('active')) tab.click();
+  const area = hit.where === 'translation' ? el.translationText : el.resultText;
+  area.blur();
+  area.setSelectionRange(hit.index, hit.index + hit.length);
+  area.focus({ preventScroll: true });
+  // Put the selected line roughly in the middle of the textarea.
+  const line = area.value.slice(0, hit.index).split('\n').length - 1;
+  const lineHeight = parseFloat(getComputedStyle(area).lineHeight) || 22;
+  area.scrollTop = Math.max(0, line * lineHeight - area.clientHeight / 2);
+  if (window.innerWidth <= 720) document.querySelector('.tile-viewer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function initSearch() {
+  let timer;
+  el.searchInput.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      state.searchQuery = el.searchInput.value;
+      refreshSearch();
+      drawOverlay();
+    }, 120);
+  });
+  el.searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); el.searchResults.querySelector('.search-hit')?.click(); }
+    if (e.key === 'Escape') { el.searchInput.value = ''; state.searchQuery = ''; refreshSearch(); drawOverlay(); }
+  });
+  el.searchSummary.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-search-run]')) return;
+    const pending = state.items.filter((i) => i.status !== 'done');
+    if (pending.length) runItems(pending);
+  });
+  // "/" jumps to the search box from anywhere except text fields.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    e.preventDefault();
+    el.searchInput.focus();
+    el.searchInput.select();
+  });
+  refreshSearch();
 }
 
 /* ------------------------------------------------------------------ */
@@ -843,6 +1012,7 @@ async function runTranslate() {
       translated = await translateOnDevice(text, source, target, progress);
     }
     item.translation = { text: translated, source, target, engine: online ? 'online' : 'device' };
+    refreshSearch();
     document.querySelector('.tab[data-tab="translation"]')?.click();
     toast(`Translated to ${TR_LANGUAGE_NAME[target]}.`);
   } catch (err) {
@@ -927,6 +1097,7 @@ function init() {
   initPalette();
   initTranslate();
   loadSettings();
+  initSearch();
   el.confThresholdOut.textContent = el.confThreshold.value;
   renderLanguages();
   renderAll();
@@ -1055,6 +1226,7 @@ function init() {
     const item = activeItem();
     if (item?.result) item.editedText = el.resultText.value;
     updateTranslateUI();
+    refreshSearch();
   });
 
   // Settings
@@ -1065,7 +1237,7 @@ function init() {
     saveSettings();
   });
   const preprocessingInputs = [el.scaleSelect, el.optGray, el.optContrast, el.optBinarize, el.optInvert];
-  [...preprocessingInputs, el.psmSelect, el.optDeskew, el.optSpaces, el.whitelist].forEach((input) =>
+  [...preprocessingInputs, el.psmSelect, el.optDeskew, el.optSpaces, el.whitelist, el.optAutoRun].forEach((input) =>
     input.addEventListener('change', () => {
       saveSettings();
       if (preprocessingInputs.includes(input) && state.view === 'processed') renderActive();

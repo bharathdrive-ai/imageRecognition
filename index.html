@@ -42,6 +42,18 @@
       </ul>
     </header>
 
+    <!-- Search -->
+    <section class="tile tile-search tinted" aria-label="Search all files">
+      <div class="tile-label">Search all files</div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchInput" type="search" placeholder="Find text in your images…" autocomplete="off" spellcheck="false" aria-label="Search text in all files">
+        <kbd title="Press / to search">/</kbd>
+      </div>
+      <p id="searchSummary" class="search-summary" aria-live="polite"></p>
+      <ul id="searchResults" class="search-results" aria-label="Search results"></ul>
+    </section>
+
     <!-- Stats -->
     <section class="tile tile-stats" aria-label="Last result">
       <div class="tile-label">Last result</div>
@@ -59,8 +71,8 @@
         <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
         <strong>Drop images or PDFs</strong>
-        <span>or click to browse · paste with Ctrl+V</span>
-        <span class="formats">PNG · JPG · WEBP · BMP · GIF · PDF</span>
+        <span>or click to browse · pick as many as you like</span>
+        <span class="formats">PNG · JPG · WEBP · BMP · GIF · PDF · Ctrl+V to paste</span>
       </label>
       <div class="input-actions">
         <button id="driveBtn" class="btn btn-sm drive-btn" type="button" hidden>
@@ -73,6 +85,7 @@
         </label>
         <button id="sampleBtn" class="btn btn-sm" type="button">Try a sample</button>
       </div>
+      <label class="check auto-check"><input id="optAutoRun" type="checkbox" checked> Recognize new files automatically</label>
     </section>
 
     <!-- Viewer -->
@@ -117,7 +130,7 @@
     <!-- Results -->
     <section class="tile tile-results tinted">
       <div class="results-head">
-        <div class="tile-label">Recognized text</div>
+        <div class="tile-label">Results</div>
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab active" data-tab="text" aria-selected="true">Text</button>
           <button type="button" role="tab" class="tab" data-tab="words" aria-selected="false">Words</button>
