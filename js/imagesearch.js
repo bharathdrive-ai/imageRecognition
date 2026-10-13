@@ -8,7 +8,11 @@
 
 import { makeCanvas } from './preprocess.js';
 
-const OPENCV_URL = 'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js';
+// Two CDNs: if one download fails or arrives truncated, the other is tried.
+const OPENCV_URLS = [
+  'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js',
+  'https://unpkg.com/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js',
+];
 const TARGET_MAX = 1100; // working size for searched images
 const QUERY_MAX = 700;   // working size for the query
 const DUPLICATE_BITS = 10; // hashes within this many differing bits = same image
@@ -63,21 +67,45 @@ let cvReady = null;
  */
 export function loadOpenCV() {
   if (!cvReady) {
-    cvReady = new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = OPENCV_URL;
-      s.async = true;
-      s.onerror = () => { cvReady = null; reject(new Error('Could not download the image-matching engine (OpenCV.js).')); };
-      s.onload = () => {
-        const m = window.cv;
-        if (m && m.Mat) resolve(true);
-        else if (m) m.onRuntimeInitialized = () => resolve(true);
-        else reject(new Error('OpenCV.js did not start.'));
-      };
-      document.head.appendChild(s);
+    cvReady = (async () => {
+      for (const url of OPENCV_URLS) {
+        try {
+          await loadOpenCVFrom(url);
+          return true;
+        } catch (err) {
+          console.warn('OpenCV.js failed to load from', url, err);
+        }
+      }
+      throw new Error('Could not download the image-matching engine (OpenCV.js). Check your connection and try again.');
+    })().catch((err) => {
+      cvReady = null; // allow a later retry instead of failing for the rest of the session
+      throw err;
     });
   }
   return cvReady;
+}
+
+function loadOpenCVFrom(url) {
+  return new Promise((resolve, reject) => {
+    if (window.cv?.Mat) return resolve();
+    // Remove a previous failed attempt (a truncated download leaves a broken script tag).
+    document.querySelectorAll('script[data-opencv]').forEach((s) => s.remove());
+    try { delete window.cv; } catch { window.cv = undefined; }
+    const s = document.createElement('script');
+    s.src = url;
+    s.async = true;
+    s.dataset.opencv = '';
+    const timer = setTimeout(() => reject(new Error('timed out')), 90000);
+    const done = (fn, arg) => { clearTimeout(timer); fn(arg); };
+    s.onerror = () => done(reject, new Error('download failed'));
+    s.onload = () => {
+      const m = window.cv;
+      if (m && m.Mat) done(resolve);
+      else if (m) m.onRuntimeInitialized = () => done(resolve);
+      else done(reject, new Error('script did not start (incomplete download?)'));
+    };
+    document.head.appendChild(s);
+  });
 }
 
 function scaled(canvas, max) {
