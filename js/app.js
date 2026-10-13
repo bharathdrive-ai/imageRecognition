@@ -1354,6 +1354,21 @@ function effectiveTheme() {
     || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
 
+// The banner's highlight pills stay on one line; where they don't fit, the row scrolls and
+// fades at whichever edge has more pills hidden behind it.
+function initHeroPills() {
+  const ul = document.querySelector('.hero-pills');
+  if (!ul) return;
+  const update = () => {
+    const max = ul.scrollWidth - ul.clientWidth;
+    ul.classList.toggle('fade-end', max > 1 && ul.scrollLeft < max - 1);
+    ul.classList.toggle('fade-start', max > 1 && ul.scrollLeft > 1);
+  };
+  ul.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(ul);
+  update();
+}
+
 /* ------------------------------------------------------------------ */
 /* Wiring                                                              */
 /* ------------------------------------------------------------------ */
@@ -1361,6 +1376,7 @@ function effectiveTheme() {
 function init() {
   try { applyTheme(localStorage.getItem(THEME_KEY)); } catch { /* ignore */ }
   initPalette();
+  initHeroPills();
   initTranslate();
   loadSettings();
   initSearch();
