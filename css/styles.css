@@ -826,3 +826,54 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   .tile-viewer { min-height: 460px; padding: 12px; }
   .stat-main b { font-size: 40px; }
 }
+
+/* ---------- Phones: Add files + Files fade from the banner into the image viewer ----------
+   On phones the order is banner -> Add files -> Files -> Search -> viewer, so these two tiles
+   carry the banner's last colour down towards the viewer's plain tile. */
+:root[data-palette="ocean"] {
+  --m-upload: linear-gradient(180deg, #6366f1 0%, #8592f6 45%, #c7cefd 100%);
+  --m-files: linear-gradient(180deg, #d5dbfe 0%, #eef0ff 60%, #fbfbff 100%);
+  --m-check: #1e1b4b;
+}
+:root[data-palette="sunset"] {
+  --m-upload: linear-gradient(180deg, #db2777 0%, #ec6b9b 45%, #fbc8d8 100%);
+  --m-files: linear-gradient(180deg, #fde0e9 0%, #fff1f5 60%, #fffbfc 100%);
+  --m-check: #4a0d27;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-palette="ocean"]:not([data-theme="light"]) {
+    --m-upload: linear-gradient(180deg, #6366f1 0%, #3f3fb8 45%, #23215e 100%);
+    --m-files: linear-gradient(180deg, #201e4f 0%, #1a1a33 60%, #16161e 100%);
+    --m-check: #e0e7ff;
+  }
+  :root[data-palette="sunset"]:not([data-theme="light"]) {
+    --m-upload: linear-gradient(180deg, #db2777 0%, #9d1d5c 45%, #4e0f3a 100%);
+    --m-files: linear-gradient(180deg, #431232 0%, #2a1424 60%, #16161e 100%);
+    --m-check: #fde2ea;
+  }
+}
+:root[data-theme="dark"][data-palette="ocean"] {
+  --m-upload: linear-gradient(180deg, #6366f1 0%, #3f3fb8 45%, #23215e 100%);
+  --m-files: linear-gradient(180deg, #201e4f 0%, #1a1a33 60%, #16161e 100%);
+  --m-check: #e0e7ff;
+}
+:root[data-theme="dark"][data-palette="sunset"] {
+  --m-upload: linear-gradient(180deg, #db2777 0%, #9d1d5c 45%, #4e0f3a 100%);
+  --m-files: linear-gradient(180deg, #431232 0%, #2a1424 60%, #16161e 100%);
+  --m-check: #fde2ea;
+}
+
+@media (max-width: 720px) {
+  :root[data-palette] .bento .tile-upload {
+    --label: rgba(255, 255, 255, .92);
+    background: var(--m-upload);
+    border-color: transparent;
+    box-shadow: 0 14px 30px -18px rgba(30, 27, 75, .55);
+  }
+  :root[data-palette] .bento .tile-upload .auto-check { color: var(--m-check); font-weight: 500; }
+  :root[data-palette] .bento .tile-upload .auto-check input { accent-color: var(--m-check); }
+  :root[data-palette] .bento .tile-files {
+    background: var(--m-files);
+    border-color: transparent;
+  }
+}
