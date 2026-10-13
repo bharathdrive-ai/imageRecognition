@@ -392,7 +392,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .input-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .input-actions > * { flex: 1; }
 .input-actions > .drive-btn { flex-basis: 100%; }
-.drive-btn svg { width: 16px; height: 16px; color: var(--accent); stroke-width: 1.8; }
+.btn-icon { width: 18px; height: 18px; flex: none; stroke: none; }
+.btn-icon * { stroke: none; }
 
 /* ---------- Files tile ---------- */
 .tile-files { display: flex; flex-direction: column; }
