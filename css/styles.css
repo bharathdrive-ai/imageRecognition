@@ -360,6 +360,41 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 .search-more { padding: 2px 6px; font-size: 11.5px; color: var(--text-3); }
 .auto-check { margin: 12px 2px 0; font-size: 12.5px; }
 
+/* Search modes: Text / Image / Describe */
+.search-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.search-head .tile-label { margin-bottom: 0; }
+.seg-sm { padding: 3px; border-radius: 12px; }
+.seg-sm .seg-btn { padding: 4px 10px; font-size: 12px; border-radius: 9px; }
+.query-row { display: flex; align-items: center; gap: 12px; }
+.query-thumb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 68px;
+  height: 68px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border-strong);
+  background: var(--tile);
+  color: var(--text-3);
+}
+.query-thumb.has-image { border-style: solid; border-color: var(--accent); }
+.query-thumb img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.query-thumb svg { width: 26px; height: 26px; stroke-width: 1.6; }
+.query-actions { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.query-actions .btn { width: 100%; }
+#describeForm { padding-right: 5px; }
+#describeForm .btn { padding: 6px 12px; }
+.match-row { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 10px; }
+.match-row img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #fff; }
+.match-name { font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.match-detail { display: flex; align-items: center; gap: 8px; margin-top: 2px; font-size: 11.5px; color: var(--text-3); }
+.match-badge { padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; background: var(--accent-soft); color: var(--accent); }
+.match-badge.dup { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+.match-bar { flex: 1; height: 5px; border-radius: 999px; background: var(--tile-3); overflow: hidden; }
+.match-bar i { display: block; height: 100%; border-radius: 999px; background: var(--brand-grad); }
+.search-summary .btn { margin-top: 8px; }
+
 /* ---------- Upload tile ---------- */
 .dropzone {
   display: flex;

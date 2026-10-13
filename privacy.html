@@ -71,6 +71,13 @@
       <li><strong>Online, only if you choose it:</strong> in other browsers, or for language pairs your browser can't handle, the button reads <strong>Translate online</strong>. Clicking it sends the recognized text to the free <a href="https://mymemory.translated.net/">MyMemory</a> service run by Translated srl, under <a href="https://mymemory.translated.net/terms-and-conditions">its own terms</a>. Don't use online translation for confidential text.</li>
     </ul>
 
+    <h2>Search by image and by description</h2>
+    <p><strong>Image</strong> search (duplicates, and finding a picture or a piece of one inside your images) and <strong>Describe</strong> search (finding images by what they show) both run entirely in your browser. Your images and your query are never uploaded.</p>
+    <ul>
+      <li>Image search uses the open-source OpenCV library, downloaded from jsDelivr the first time you use it.</li>
+      <li>Describe search uses Apple's MobileCLIP model. After you agree, your browser downloads it (about 88 MB) from Hugging Face once and keeps it for next time. Only the model files are downloaded; nothing about your images is sent.</li>
+    </ul>
+
     <h2>What your browser stores</h2>
     <p>Your recognition settings, translation languages, palette and light/dark theme choice are saved in your browser's local storage. Downloaded language models are cached by your browser so the next run starts faster. You can clear both by clearing this site's data in your browser.</p>
 
@@ -81,6 +88,7 @@
       <li>Google Fonts: the page's fonts</li>
       <li>Google Identity Services and Google Picker: only when you use the Google Drive button</li>
       <li>MyMemory (translated.net): only when you click <strong>Translate online</strong></li>
+      <li>Hugging Face: only to download the Describe search model, after you agree</li>
       <li>Vercel or GitHub Pages: hosting for the page itself</li>
     </ul>
     <p>The app has no analytics, advertising or tracking cookies.</p>

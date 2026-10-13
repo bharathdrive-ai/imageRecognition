@@ -3,6 +3,8 @@ import { recognize, isEngineLoaded } from './ocr.js';
 import { renderPdf } from './pdf.js';
 import { download, baseName, toJson, combinedText } from './export.js';
 import { driveConfigured, preloadDrive, importFromDrive } from './drive.js';
+import { dHash, isDuplicate, loadOpenCV, prepareQuery, findInImage } from './imagesearch.js';
+import { loadClip, clipLoaded, embedImage, embedText, cosine, MODEL_SIZE_MB } from './semantic.js';
 import {
   LANGUAGES as TR_LANGUAGES, LANGUAGE_NAME as TR_LANGUAGE_NAME, onDeviceAvailable, onDeviceStatus,
   detectLanguage, translateOnDevice, translateOnline,
@@ -28,6 +30,8 @@ const el = {
   optGray: $('optGray'), optContrast: $('optContrast'), optBinarize: $('optBinarize'), optInvert: $('optInvert'),
   optDeskew: $('optDeskew'), optSpaces: $('optSpaces'), whitelist: $('whitelist'), optAutoRun: $('optAutoRun'),
   searchInput: $('searchInput'), searchSummary: $('searchSummary'), searchResults: $('searchResults'),
+  queryInput: $('queryInput'), queryThumb: $('queryThumb'), useRegionBtn: $('useRegionBtn'),
+  describeForm: $('describeForm'), describeInput: $('describeInput'), describeBtn: $('describeBtn'),
   confThreshold: $('confThreshold'), confThresholdOut: $('confThresholdOut'),
   runAllBtn: $('runAllBtn'), runOneBtn: $('runOneBtn'),
   rotateLeftBtn: $('rotateLeftBtn'), rotateRightBtn: $('rotateRightBtn'), showBoxes: $('showBoxes'), clearRegionBtn: $('clearRegionBtn'),
@@ -50,6 +54,10 @@ const state = {
   translating: false,
   autoQueue: [],        // files added while a batch was already running
   searchQuery: '',
+  searchMode: 'text',   // 'text' | 'image' | 'describe'
+  imageQuery: null,     // { canvas, label, prepared }
+  imageSearch: { running: false, done: 0, total: 0, token: 0 },
+  describe: { query: '', running: false, label: '', progress: 0, consent: false, error: '' },
   onlinePairs: new Set(), // language pairs the browser can't translate on-device
   highlight: -1,
 };
@@ -173,6 +181,8 @@ async function addFiles(files) {
       if (state.running) state.autoQueue.push(...newItems);
       else runItems(newItems);
     }
+    if (state.searchMode === 'image' && state.imageQuery) runImageSearch(newItems);
+    if (state.searchMode === 'describe' && state.describe.query && clipLoaded()) runDescribe();
   }
 }
 
@@ -211,6 +221,9 @@ function addItem(name, canvas) {
     result: null,
     editedText: null,
     translation: null,
+    hash: dHash(canvas),
+    clip: null,     // image embedding for Describe search
+    match: null,    // result of the current Image search
     region: null,
     preview: null,
     previewKey: '',
@@ -428,6 +441,7 @@ function renderControls() {
   const hasResult = !!item?.result;
   el.copyBtn.disabled = !hasResult;
   el.downloadBtn.disabled = !state.items.some((i) => i.result);
+  if (el.useRegionBtn) el.useRegionBtn.disabled = !item?.region || state.imageSearch.running;
   updateTranslateUI();
 }
 
@@ -541,6 +555,20 @@ function drawOverlay() {
       ctx.lineWidth = (lw * 1.6) / k;
       ctx.strokeRect(x0 - pad, y0 - pad, x1 - x0 + pad * 2, y1 - y0 + pad * 2);
     }
+    ctx.restore();
+  }
+
+  if (state.searchMode === 'image' && item.match?.poly) {
+    const poly = item.match.poly.map(([x, y]) => [x * o.width, y * o.height]);
+    ctx.save();
+    ctx.beginPath();
+    poly.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(236, 72, 153, 0.14)';
+    ctx.fill();
+    ctx.lineWidth = lw * 2.4;
+    ctx.strokeStyle = '#ec4899';
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -713,6 +741,7 @@ const escapeHtml = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt
 const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function searchTokens() {
+  if (state.searchMode !== 'text') return [];
   return state.searchQuery.toLocaleLowerCase().split(/\s+/).filter(Boolean);
 }
 
@@ -731,6 +760,8 @@ function snippet(text, index, length) {
 
 function refreshSearch() {
   if (!el.searchResults) return;
+  if (state.searchMode === 'image') return renderImageResults();
+  if (state.searchMode === 'describe') return renderDescribeResults();
   const keepScroll = el.searchResults.scrollTop;
   const recognized = state.items.filter((i) => i.result);
   const pending = state.items.filter((i) => !i.result && i.status !== 'running').length;
@@ -830,10 +861,245 @@ function initSearch() {
     if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
     e.preventDefault();
-    el.searchInput.focus();
-    el.searchInput.select();
+    const input = state.searchMode === 'describe' ? el.describeInput : state.searchMode === 'image' ? null : el.searchInput;
+    if (!input) return setSearchMode('text'), el.searchInput.focus();
+    input.focus();
+    input.select();
   });
   refreshSearch();
+}
+
+/* ------------------------------------------------------------------ */
+/* Search modes: Image (duplicates + piece inside) and Describe (AI)   */
+/* ------------------------------------------------------------------ */
+
+function setSearchMode(mode) {
+  state.searchMode = mode;
+  document.querySelectorAll('[data-smode]').forEach((b) => {
+    b.classList.toggle('active', b.dataset.smode === mode);
+    b.setAttribute('aria-selected', String(b.dataset.smode === mode));
+  });
+  document.querySelectorAll('[data-smode-panel]').forEach((p) => { p.hidden = p.dataset.smodePanel !== mode; });
+  if (mode === 'image') loadOpenCV().catch(() => {}); // warm up the matcher in the background
+  refreshSearch();
+  drawOverlay();
+}
+
+function matchRow(item, badgeHtml, barPct) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'search-hit';
+  b.innerHTML = `<span class="match-row"><img alt="" src="${item.thumb}"><span style="min-width:0"><span class="match-name"></span><span class="match-detail">${badgeHtml}${barPct != null ? `<span class="match-bar"><i style="width:${Math.round(barPct)}%"></i></span>` : ''}</span></span></span>`;
+  b.querySelector('.match-name').textContent = item.name;
+  b.addEventListener('click', () => openMatch(item));
+  const li = document.createElement('li');
+  li.className = 'search-file';
+  li.appendChild(b);
+  return li;
+}
+
+function openMatch(item) {
+  state.activeId = item.id;
+  state.highlight = -1;
+  renderAll();
+  if (window.innerWidth <= 720) document.querySelector('.tile-viewer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ----- Image ----- */
+
+function setImageQuery(canvas, label) {
+  state.imageQuery?.prepared?.dispose();
+  state.imageQuery = { canvas, label, prepared: null };
+  el.queryThumb.innerHTML = `<img alt="Query image" src="${canvas.toDataURL('image/jpeg', 0.8)}">`;
+  el.queryThumb.classList.add('has-image');
+  el.queryThumb.title = label;
+  for (const item of state.items) item.match = null;
+  runImageSearch(state.items);
+}
+
+function cropRegion(item) {
+  const r = item.region;
+  const b = item.base;
+  const c = makeCanvas(Math.max(8, r.w * b.width), Math.max(8, r.h * b.height));
+  c.getContext('2d').drawImage(b, r.x * b.width, r.y * b.height, r.w * b.width, r.h * b.height, 0, 0, c.width, c.height);
+  return c;
+}
+
+async function runImageSearch(items) {
+  if (!state.imageQuery || !items.length) return;
+  const run = state.imageSearch;
+  const token = ++run.token;
+  run.running = true;
+  run.done = 0;
+  run.total = items.length;
+  renderImageResults();
+  renderControls();
+  try {
+    if (!state.imageQuery.prepared) {
+      el.searchSummary.textContent = 'Loading the image matcher (first time only)…';
+      state.imageQuery.prepared = await prepareQuery(state.imageQuery.canvas);
+    }
+    const q = state.imageQuery.prepared;
+    for (const item of items) {
+      if (token !== run.token) return; // a newer search replaced this one
+      if (!state.items.includes(item)) continue;
+      const dup = isDuplicate(q.hash, item.hash);
+      if (dup.duplicate) {
+        item.match = { kind: 'duplicate', similarity: dup.similarity, poly: [[0, 0], [1, 0], [1, 1], [0, 1]] };
+      } else {
+        const r = findInImage(q, item.base);
+        item.match = r.found ? { kind: 'contains', method: r.method, score: r.score, poly: r.poly } : { kind: 'none' };
+      }
+      run.done++;
+      renderImageResults();
+      if (item.id === state.activeId) drawOverlay();
+      await new Promise((resolve) => setTimeout(resolve)); // keep the page responsive
+    }
+  } catch (err) {
+    console.error(err);
+    toast(err?.message || 'Image search failed.');
+  } finally {
+    if (token === run.token) {
+      run.running = false;
+      renderImageResults();
+      renderControls();
+      drawOverlay();
+    }
+  }
+}
+
+function renderImageResults() {
+  const run = state.imageSearch;
+  el.searchResults.innerHTML = '';
+  if (!state.imageQuery) {
+    el.searchSummary.innerHTML = state.items.length
+      ? 'Choose an image, or drag a box on one of your images and click <b>Use selected region</b>, to find duplicates and images that contain it.'
+      : 'Add images, then choose a picture (or a piece of one) to find where it appears.';
+    return;
+  }
+  const dups = state.items.filter((i) => i.match?.kind === 'duplicate').sort((a, b) => b.match.similarity - a.match.similarity);
+  const contains = state.items.filter((i) => i.match?.kind === 'contains').sort((a, b) => b.match.score - a.match.score);
+  for (const item of dups) {
+    el.searchResults.appendChild(matchRow(item, `<span class="match-badge dup">Duplicate</span>${item.match.similarity}% alike`, null));
+  }
+  for (const item of contains) {
+    const detail = item.match.method === 'features' ? `${item.match.score} matching points` : `${item.match.score}% pattern match`;
+    const strength = item.match.method === 'features' ? Math.min(100, item.match.score * 2) : item.match.score;
+    el.searchResults.appendChild(matchRow(item, `<span class="match-badge">Contains it</span>${detail}`, strength));
+  }
+  const checked = state.items.filter((i) => i.match).length;
+  const found = dups.length + contains.length;
+  const label = escapeHtml(state.imageQuery.label);
+  if (run.running) {
+    el.searchSummary.innerHTML = `Comparing “${label}” with your images… <b>${run.done}</b> of ${run.total}`;
+  } else {
+    el.searchSummary.innerHTML = found
+      ? `“${label}”: <b>${dups.length}</b> duplicate${dups.length === 1 ? '' : 's'}, <b>${contains.length}</b> image${contains.length === 1 ? '' : 's'} containing it (${checked} checked). Click a result to see it outlined.`
+      : `No images contain “${label}” (${checked} checked).`;
+  }
+}
+
+/* ----- Describe ----- */
+
+async function runDescribe() {
+  const d = state.describe;
+  const query = el.describeInput.value.trim() || d.query;
+  if (!query) return;
+  d.query = query;
+  d.error = '';
+  if (!state.items.length) {
+    el.searchSummary.textContent = 'Add some images first, then describe what you are looking for.';
+    return;
+  }
+  if (!clipLoaded() && !d.consent) {
+    el.searchResults.innerHTML = '';
+    el.searchSummary.innerHTML = `Describe search uses an AI model that runs on your device. It downloads about <b>${MODEL_SIZE_MB} MB</b> once (your browser keeps it), and nothing is uploaded.<br><button type="button" class="btn btn-primary btn-sm" data-clip-consent>Download model and search</button>`;
+    return;
+  }
+  if (d.running) return;
+  d.running = true;
+  el.describeBtn.disabled = true;
+  const progress = (label, p) => { d.label = label; d.progress = p; renderDescribeResults(); };
+  try {
+    progress('Starting the AI model…', 0);
+    await loadClip(progress);
+    const text = await embedText(query);
+    const pending = state.items.filter((i) => !i.clip);
+    for (const [n, item] of pending.entries()) {
+      progress(`Analysing images ${n + 1} of ${pending.length}`, n / pending.length);
+      item.clip = await embedImage(item.base);
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+    for (const item of state.items) item.clipScore = item.clip ? cosine(item.clip, text) : null;
+    d.scoredFor = query;
+  } catch (err) {
+    console.error(err);
+    d.error = /fetch|network|load/i.test(String(err?.message)) ? 'Could not download the AI model. Check your connection and try again.' : (err?.message || 'Describe search failed.');
+  } finally {
+    d.running = false;
+    d.label = '';
+    el.describeBtn.disabled = false;
+    renderDescribeResults();
+  }
+}
+
+function renderDescribeResults() {
+  const d = state.describe;
+  el.searchResults.innerHTML = '';
+  if (d.running) {
+    el.searchSummary.innerHTML = `${escapeHtml(d.label || 'Working…')} <b>${Math.round((d.progress || 0) * 100)}%</b>`;
+    return;
+  }
+  if (d.error) { el.searchSummary.textContent = d.error; return; }
+  const scored = state.items.filter((i) => typeof i.clipScore === 'number' && d.scoredFor);
+  if (!scored.length) {
+    el.searchSummary.innerHTML = state.items.length
+      ? 'Describe what an image shows, like <i>receipt</i>, <i>ID card</i>, <i>handwritten note</i> or <i>a chart</i>, and your images are ranked by how well they match.'
+      : 'Add images, then describe what you are looking for.';
+    return;
+  }
+  scored.sort((a, b) => b.clipScore - a.clipScore);
+  const best = scored[0].clipScore;
+  // MobileCLIP scores: clear matches ~0.20-0.30, unrelated images ~0.05-0.13.
+  const strong = scored.filter((i) => i.clipScore >= 0.17 && i.clipScore >= best - 0.06);
+  const shown = strong.length ? strong : scored.slice(0, 3);
+  for (const item of shown) {
+    const pct = Math.max(4, Math.min(100, ((item.clipScore - 0.05) / 0.25) * 100));
+    const badge = strong.includes(item) ? '<span class="match-badge">Match</span>' : '<span class="match-badge" style="opacity:.6">Weak</span>';
+    el.searchResults.appendChild(matchRow(item, `${badge}score ${item.clipScore.toFixed(2)}`, pct));
+  }
+  const q = escapeHtml(d.scoredFor);
+  el.searchSummary.innerHTML = strong.length
+    ? `<b>${strong.length}</b> of ${scored.length} image${scored.length === 1 ? '' : 's'} look like “${q}”.`
+    : `No image clearly matches “${q}”. Closest ${shown.length} shown.`;
+}
+
+function initSearchModes() {
+  document.querySelectorAll('[data-smode]').forEach((b) => b.addEventListener('click', () => setSearchMode(b.dataset.smode)));
+  el.queryInput.addEventListener('change', async () => {
+    const file = el.queryInput.files?.[0];
+    el.queryInput.value = '';
+    if (!file) return;
+    try {
+      setImageQuery(await fileToCanvas(file), file.name || 'query image');
+    } catch {
+      toast('That image could not be opened.');
+    }
+  });
+  el.useRegionBtn.addEventListener('click', () => {
+    const item = activeItem();
+    if (!item?.region) return toast('Drag a box on an image first, then use it as the query.');
+    setImageQuery(cropRegion(item), `region of ${item.name}`);
+  });
+  el.describeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    runDescribe();
+  });
+  el.searchSummary.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-clip-consent]')) return;
+    state.describe.consent = true;
+    runDescribe();
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -1098,6 +1364,7 @@ function init() {
   initTranslate();
   loadSettings();
   initSearch();
+  initSearchModes();
   el.confThresholdOut.textContent = el.confThreshold.value;
   renderLanguages();
   renderAll();
@@ -1183,6 +1450,9 @@ function init() {
     if (!item) return;
     item.rotation = (item.rotation + delta + 360) % 360;
     item.base = rotateCanvas(item.source, item.rotation);
+    item.hash = dHash(item.base);
+    item.clip = null;
+    item.match = null;
     item.thumb = makeThumb(item.base);
     item.result = null;
     item.editedText = null;
@@ -1200,9 +1470,9 @@ function init() {
   });
   el.showBoxes.addEventListener('change', drawOverlay);
 
-  document.querySelectorAll('.seg-btn').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('.seg-btn[data-view]').forEach((b) => b.addEventListener('click', () => {
     state.view = b.dataset.view;
-    document.querySelectorAll('.seg-btn').forEach((x) => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.seg-btn[data-view]').forEach((x) => x.classList.toggle('active', x === b));
     renderActive();
   }));
 

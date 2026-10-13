@@ -47,6 +47,8 @@ flowchart TB
     app --> ocr["ocr.js<br/>one Tesseract worker,<br/>jobs in order, TSV to words"]
     app --> pdf["pdf.js<br/>PDF pages to canvases<br/>(up to 50, ~2200 px)"]
     app --> drive["drive.js<br/>Google sign-in, Picker,<br/>downloads (reads config.js)"]
+    app --> isearch["imagesearch.js<br/>dHash + OpenCV.js matching"]
+    app --> sem["semantic.js<br/>MobileCLIP embeddings"]
     app --> tr["translate.js<br/>on-device Translator API,<br/>MyMemory fallback (opt-in)"]
     app --> exp["export.js<br/>TXT, JSON, combined downloads"]
     ocr -- "window.Tesseract" --> tess["Tesseract.js 7"]
@@ -64,6 +66,8 @@ flowchart TB
 | `js/pdf.js` | Lazily imports pdf.js and renders up to 50 pages at about 2200 px wide |
 | `js/drive.js` | Loads Google's sign-in and Picker scripts on demand, gets a `drive.file` token, shows the Picker, downloads picked files from the Drive API |
 | `js/config.js` | Public Google client ID, API key and project number; blank values hide the Drive button |
+| `js/imagesearch.js` | Search by image: 64-bit dHash for duplicates; OpenCV.js (lazy, ~11 MB) ORB + BFMatcher ratio test + RANSAC homography to find a piece inside an image, with a coarse-to-fine multi-scale template-matching fallback. Never resolves a promise with the thenable OpenCV module (that freezes the page). |
+| `js/semantic.js` | Search by description: MobileCLIP-S0 via Transformers.js 4.3.1 (lazy). Full-precision vision encoder (the 8-bit one ranks randomly) + 8-bit text encoder, ~88 MB, downloaded after consent; cosine similarity of normalised embeddings. |
 | `js/translate.js` | Translation between English and Indian languages: browser Translator API on the device (with timeouts), else MyMemory after the user clicks **Translate online** |
 | `js/export.js` | Blob downloads, safe file names, JSON and combined-text builders |
 | `privacy.html` | Privacy policy linked from the header and from the Google consent screen |

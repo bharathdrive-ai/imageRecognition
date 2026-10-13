@@ -40,6 +40,8 @@ Everything runs on the user's device. Files are never uploaded; only the OCR eng
 - **Page layout modes:** automatic, single column, uniform block, sparse text, single line/word/character
 - **Preprocessing:** auto-upscale, grayscale, auto contrast, Otsu black-&-white thresholding, invert (light text on dark), 90° rotation, automatic deskew of tilted scans. Toggle **Original / Processed** to see what the engine sees
 - **Batch upload + search:** add as many images or PDFs as you like (picker, drag & drop, paste, Drive); new files are recognized automatically (toggle in the upload tile). The **Search all files** tile finds a word or phrase across every file's text and translation, with highlighted snippets; clicking a result opens the file, selects the match and highlights the words on the image. Press `/` to jump to search.
+- **Search by image (on-device):** choose a picture, or drag a box on any image and click **Use selected region**, to find **duplicates** (perceptual hash) and images that **contain that piece** (OpenCV.js ORB feature matching with a RANSAC homography, plus multi-scale template matching for small or flat pieces). Matches are outlined on the image.
+- **Search by description (on-device AI):** type what an image shows ("receipt", "ID card", "handwritten note") and images are ranked by Apple's MobileCLIP-S0 via Transformers.js. The ~88 MB model downloads once, after the user agrees.
 - **Region OCR:** drag a box on the image to read only that area
 - **Results:** editable text, mean confidence, per-word confidence table, colour-coded word boxes over the image (hover for word + confidence), adjustable low-confidence threshold
 - **Translate** recognized text between English and Indian languages (Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Marathi, Gujarati, Punjabi, Urdu). Uses the browser's built-in on-device translator when available (Chrome/Edge desktop); otherwise, only when the user clicks **Translate online**, the free MyMemory API.
@@ -93,6 +95,8 @@ js/app.js           State, file handling, rendering, overlay interaction, export
 js/ocr.js           Tesseract.js worker wrapper (lazy init, language switching, TSV parsing)
 js/preprocess.js    Canvas preprocessing (scale, grayscale, contrast, Otsu, invert, rotate)
 js/pdf.js           PDF → page canvases via pdf.js (loaded only when a PDF is added)
+js/imagesearch.js   Search by image: dHash duplicates, OpenCV.js feature + template matching (loaded on demand)
+js/semantic.js      Search by description: MobileCLIP-S0 embeddings via Transformers.js (loaded on demand)
 js/translate.js     Translation: on-device Translator API, MyMemory fallback with consent
 js/drive.js         Google Drive import: sign-in, Picker, downloads (Google scripts load on demand)
 js/config.js        Google Drive client ID, API key, project number (blank = Drive button hidden)
