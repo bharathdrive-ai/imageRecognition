@@ -56,7 +56,7 @@ flowchart TB
 
 | File | Responsibility |
 | --- | --- |
-| `index.html` | Bento grid of 12 tiles (hero, search, stats, upload, viewer, results, files, language & layout, image settings, fine-tuning, translate, export); loads `tesseract.min.js` then `js/app.js` |
+| `index.html` | Bento grid of 12 tiles (hero, search, stats, upload, viewer, results, files, language & layout, image settings, image fine-tuning, translate, export); loads `tesseract.min.js` then `js/app.js` |
 | `css/styles.css` | Bento Grid theme: light/dark tokens, grid areas for 4 columns (desktop), 2 (tablet) and 1 (phone) |
 | `js/app.js` | State, file intake (drop, browse, paste, camera, sample; auto-recognize queue), rendering, overlay, region selection, cross-file search (regex over each file's text and translation, word highlights on the image), settings, theme, exports |
 | `js/ocr.js` | Creates and reuses one Tesseract worker, switches languages, sets parameters, serializes jobs, parses TSV |
