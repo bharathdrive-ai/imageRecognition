@@ -696,6 +696,7 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   --p-brand-1: #f97316; --p-brand-2: #db2777;
   --p-hero: linear-gradient(120deg, #fbbf24 0%, #f97316 40%, #db2777 100%);
   --p-stats: #4a044e; --p-stats-dark: #4a044e;
+  --p-search: linear-gradient(105deg, #db2777 0%, #a21c5f 45%, #6b0f56 75%, #4a044e 100%);
   --p-bg: #fdf3ea; --p-mix: 22%; --p-mix-dark: 24%;
 }
 :root[data-palette="sunset"] .tile-upload  { --hue: #fb923c; }
@@ -713,6 +714,7 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   --p-brand-1: #0891b2; --p-brand-2: #4f46e5;
   --p-hero: linear-gradient(120deg, #06b6d4 0%, #3b82f6 55%, #6366f1 100%);
   --p-stats: #0c1e3e; --p-stats-dark: #0c1e3e;
+  --p-search: linear-gradient(105deg, #6366f1 0%, #4347c9 40%, #23308a 72%, #0c1e3e 100%);
   --p-bg: #edf5f7; --p-mix: 20%; --p-mix-dark: 24%;
 }
 :root[data-palette="ocean"] .tile-upload  { --hue: #22d3ee; }
@@ -738,6 +740,43 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
 }
 .swatch:hover { transform: scale(1.12); }
 .swatch[aria-checked="true"] { border-color: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, .5); transform: scale(1.12); }
+
+/* ---------- Search tile: gradient bridge between the hero and Last result ---------- */
+:root[data-palette] .bento .tile-search {
+  --label: rgba(255, 255, 255, .78);
+  --ink: rgba(255, 255, 255, .88);
+  color: #f5f5ff;
+  border-color: transparent;
+  background:
+    radial-gradient(360px 220px at 12% 0%, rgba(255, 255, 255, .16), transparent 70%),
+    radial-gradient(320px 240px at 100% 100%, rgba(6, 182, 212, .18), transparent 70%),
+    var(--p-search, var(--brand-grad));
+  box-shadow: 0 18px 40px -20px color-mix(in srgb, var(--stats-bg) 80%, transparent);
+}
+.bento .tile-search .search-summary b { color: #fff; }
+.bento .tile-search .search-summary .link-btn { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+.bento .tile-search .seg { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .22); }
+.bento .tile-search .seg-btn { color: rgba(255, 255, 255, .78); }
+.bento .tile-search .seg-btn:hover { color: #fff; }
+.bento .tile-search .seg-btn.active { color: #14151f; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, .18); }
+.bento .tile-search .search-box { background: #fff; border-color: transparent; box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .35); }
+.bento .tile-search .search-box input { color: #14151f; }
+.bento .tile-search .search-box input::placeholder { color: #6b7080; }
+.bento .tile-search .search-box svg { color: #6b7080; }
+.bento .tile-search .search-box kbd { background: #f1f2f6; border-color: #d7d9e0; color: #6b7080; }
+.bento .tile-search .search-box:focus-within { box-shadow: 0 0 0 3px rgba(255, 255, 255, .45); }
+.bento .tile-search .query-thumb { border-color: rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .85); }
+.bento .tile-search .query-thumb.has-image { border-color: #fff; }
+.bento .tile-search .query-actions .btn { background: #fff; color: #14151f; border-color: transparent; }
+.bento .tile-search .query-actions .btn:disabled { background: rgba(255, 255, 255, .55); color: rgba(20, 21, 31, .6); opacity: 1; }
+.bento .tile-search .search-file { background: #fff; border-color: transparent; color: #14151f; }
+.bento .tile-search .search-hit { color: #3b3f50; }
+.bento .tile-search .search-hit:hover, .bento .tile-search .search-hit:focus-visible { background: #eef0ff; color: #14151f; }
+.bento .tile-search .match-name, .bento .tile-search .search-file-head { color: #14151f; }
+.bento .tile-search .match-detail, .bento .tile-search .search-more, .bento .tile-search .search-hit .where { color: #6b7080; }
+.bento .tile-search .match-bar { background: #e6e8f0; }
+.bento .tile-search .count { background: #eef0ff; color: #3730a3; }
+.bento .tile-search .search-results { scrollbar-color: rgba(255, 255, 255, .45) transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
