@@ -827,9 +827,8 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   .stat-main b { font-size: 40px; }
 }
 
-/* ---------- Phones: Add files + Files fade from the banner into the image viewer ----------
-   On phones the order is banner -> Add files -> Files -> Search -> viewer, so these two tiles
-   carry the banner's last colour down towards the viewer's plain tile. */
+/* ---------- Add files + Files: fade from the banner down towards the image viewer ----------
+   Both tiles sit below the banner at every width, so they carry its last colour down to light. */
 :root[data-palette="ocean"] {
   --m-upload: linear-gradient(180deg, #6366f1 0%, #8592f6 45%, #c7cefd 100%);
   --m-files: linear-gradient(180deg, #d5dbfe 0%, #eef0ff 60%, #fbfbff 100%);
@@ -863,19 +862,17 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   --m-check: #fde2ea;
 }
 
-@media (max-width: 720px) {
-  :root[data-palette] .bento .tile-upload {
-    --label: rgba(255, 255, 255, .92);
-    background: var(--m-upload);
-    border-color: transparent;
-    box-shadow: 0 14px 30px -18px rgba(30, 27, 75, .55);
-  }
-  :root[data-palette] .bento .tile-upload .auto-check { color: var(--m-check); font-weight: 500; }
-  :root[data-palette] .bento .tile-upload .auto-check input { accent-color: var(--m-check); }
-  :root[data-palette] .bento .tile-files {
-    background: var(--m-files);
-    border-color: transparent;
-  }
+:root[data-palette] .bento .tile-upload {
+  --label: rgba(255, 255, 255, .92);
+  background: var(--m-upload);
+  border-color: transparent;
+  box-shadow: 0 14px 30px -18px rgba(30, 27, 75, .55);
+}
+:root[data-palette] .bento .tile-upload .auto-check { color: var(--m-check); font-weight: 500; }
+:root[data-palette] .bento .tile-upload .auto-check input { accent-color: var(--m-check); }
+:root[data-palette] .bento .tile-files {
+  background: var(--m-files);
+  border-color: transparent;
 }
 
 /* ---------- Image viewer: gradient frame bridging Search (above) and Stats (below), cool stage ---------- */
