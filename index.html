@@ -44,7 +44,7 @@
 
     <!-- Search -->
     <section class="tile tile-search tinted" aria-label="Search all files">
-      <div class="tile-label">Search all files</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search all files</div>
       <div class="search-box">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input id="searchInput" type="search" placeholder="Find text in your images…" autocomplete="off" spellcheck="false" aria-label="Search text in all files">
@@ -56,7 +56,7 @@
 
     <!-- Stats -->
     <section class="tile tile-stats" aria-label="Last result">
-      <div class="tile-label">Last result</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16"/><path d="M7 16v-4M12 16V6M17 16v-7"/></svg>Last result</div>
       <div id="stats" class="stats is-empty">
         <div class="stat stat-main"><b id="statConf">–</b><span>confidence</span></div>
         <div class="stat"><b id="statWords">–</b><span>words</span></div>
@@ -66,7 +66,7 @@
 
     <!-- Upload -->
     <section class="tile tile-upload tinted">
-      <div class="tile-label">Add files</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>Add files</div>
       <label id="dropZone" class="dropzone" tabindex="0">
         <input id="fileInput" type="file" accept="image/*,application/pdf" multiple hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
@@ -159,7 +159,7 @@
     <!-- Results -->
     <section class="tile tile-results tinted">
       <div class="results-head">
-        <div class="tile-label">Results</div>
+        <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/><path d="M15 3v4h4M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg>Results</div>
         <div class="tabs" role="tablist">
           <button type="button" role="tab" class="tab active" data-tab="text" aria-selected="true">Text</button>
           <button type="button" role="tab" class="tab" data-tab="words" aria-selected="false">Words</button>
@@ -187,7 +187,7 @@
     <!-- Files -->
     <section class="tile tile-files tinted">
       <div class="section-head">
-        <div class="tile-label">Files <span id="fileCount" class="count">0</span></div>
+        <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h7l4 4v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M16 3v4h4M5 7v13a1 1 0 0 0 1 1h10"/></svg>Files <span id="fileCount" class="count">0</span></div>
         <button id="clearAllBtn" class="link-btn" type="button" disabled>Clear all</button>
       </div>
       <ul id="fileList" class="file-list" aria-label="Files to recognize"></ul>
@@ -197,7 +197,7 @@
 
     <!-- Language & layout -->
     <section class="tile tile-lang tinted">
-      <div class="tile-label">Language &amp; layout</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Language &amp; layout</div>
       <div class="field">
         <label for="langSelect">Languages</label>
         <div id="langChips" class="chips"></div>
@@ -219,7 +219,7 @@
 
     <!-- Image cleanup -->
     <section class="tile tile-pre tinted">
-      <div class="tile-label">Image cleanup</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 15 9M13.5 6.5l4 4"/><path d="M19 3v4M17 5h4M8 3v2M7 4h2M20 13v2M19 14h2"/></svg>Image cleanup</div>
       <div class="field">
         <label for="scaleSelect">Upscale</label>
         <select id="scaleSelect">
@@ -239,7 +239,7 @@
 
     <!-- Fine-tuning -->
     <section class="tile tile-adv tinted">
-      <div class="tile-label">Fine-tuning</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg>Fine-tuning</div>
       <div class="field">
         <label for="whitelist">Only allow these characters</label>
         <input id="whitelist" type="text" placeholder="e.g. 0123456789.-" spellcheck="false" autocomplete="off">
@@ -253,7 +253,7 @@
 
     <!-- Privacy -->
     <section class="tile tile-translate tinted">
-      <div class="tile-label">Translate</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h8M8 3v2M10.5 5c0 4.5-3 7.5-6.5 9M6 9c1.5 2.2 3.5 3.8 6 4.8"/><path d="m13 21 4-9 4 9M14.4 18h5.2"/></svg>Translate</div>
       <div class="translate-langs">
         <div class="field">
           <label for="trFrom">From</label>
@@ -273,7 +273,7 @@
 
     <!-- Export -->
     <section class="tile tile-export tinted">
-      <div class="tile-label">Export</div>
+      <div class="tile-label"><svg class="label-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>Export</div>
       <p class="export-note">Copy the text, or download TXT, searchable PDF, JSON, TSV or hOCR.</p>
       <div class="export-bar">
         <button id="copyBtn" class="btn" type="button" disabled>Copy text</button>

@@ -193,12 +193,15 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   text-transform: uppercase;
   color: var(--label, var(--text-3));
 }
-.tile-label::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  background: var(--brand-grad);
+.label-icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
+  stroke-width: 2.2;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 15%, transparent);
 }
 
 /* ---------- Hero tile ---------- */
