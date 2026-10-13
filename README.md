@@ -5,7 +5,7 @@
 A browser-based OCR tool that extracts text from images and PDFs using [Tesseract.js](https://github.com/naptha/tesseract.js) 7.
 Everything runs on the user's device. Files are never uploaded; only the OCR engine and language models are downloaded from a CDN (and cached after first use).
 
-**Live:** [imagesearcheasy.vercel.app](https://imagesearcheasy.vercel.app/) (Vercel) · [bharathdrive-ai.github.io/imageRecognition](https://bharathdrive-ai.github.io/imageRecognition/) (GitHub Pages)
+**Live:** [insta-scan.vercel.app](https://insta-scan.vercel.app/) (Vercel; the old imagesearcheasy.vercel.app address still works) · [bharathdrive-ai.github.io/imageRecognition](https://bharathdrive-ai.github.io/imageRecognition/) (GitHub Pages)
 
 **Architecture:** see [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -14,9 +14,9 @@ Everything runs on the user's device. Files are never uploaded; only the OCR eng
 | What | URL |
 | --- | --- |
 | **Live app** | |
-| Vercel | https://imagesearcheasy.vercel.app |
+| Vercel | https://insta-scan.vercel.app |
 | GitHub Pages | https://bharathdrive-ai.github.io/imageRecognition/ |
-| Privacy policy | https://imagesearcheasy.vercel.app/privacy.html |
+| Privacy policy | https://insta-scan.vercel.app/privacy.html |
 | **Code and docs** | |
 | GitHub repo | https://github.com/bharathdrive-ai/imageRecognition |
 | Architecture (Claude Doc) | https://claude.ai/code/artifact/9e90526f-4bb2-46ac-bbdb-0727260cb836 |
@@ -62,7 +62,7 @@ Then open http://localhost:8790.
 
 A push to `main` deploys to both hosts automatically:
 
-- **Vercel:** project `imagesearcheasy` (team driveAI), connected through the Vercel GitHub app, preset "Other", no build command → https://imagesearcheasy.vercel.app/
+- **Vercel:** project `imagesearcheasy` (team driveAI), connected through the Vercel GitHub app, preset "Other", no build command → https://insta-scan.vercel.app/
 - **GitHub Pages:** deploy from branch `main` / root → https://bharathdrive-ai.github.io/imageRecognition/
 
 Any other static host (Netlify, Cloudflare Pages) works the same way.
@@ -77,12 +77,12 @@ The button stays hidden until `js/config.js` has three values. To get them from 
 2. **Enable APIs:** APIs & Services → Library → enable **Google Picker API** and **Google Drive API**.
 3. **OAuth consent screen:** User type *External*, add the app name and support email, and add the scope `.../auth/drive.file`. While the app is in *Testing*, only the listed test users can sign in. Click *Publish app* to open it to everyone; `drive.file` is a non-sensitive scope, so Google review isn't needed.
 4. **OAuth client ID:** Credentials → Create credentials → OAuth client ID → *Web application*. Under **Authorized JavaScript origins**, add:
-   - `https://imagesearcheasy.vercel.app`
+   - `https://insta-scan.vercel.app`
    - `https://bharathdrive-ai.github.io`
    - `http://localhost:8790`
 
    Copy the client ID into `clientId`.
-5. **API key:** Credentials → Create credentials → API key. Restrict it to the **Google Picker API**, and to websites `https://imagesearcheasy.vercel.app/*`, `https://bharathdrive-ai.github.io/*` and `http://localhost:8790/*`. Copy it into `apiKey`.
+5. **API key:** Credentials → Create credentials → API key. Restrict it to the **Google Picker API**, and to websites `https://insta-scan.vercel.app/*`, `https://bharathdrive-ai.github.io/*` and `http://localhost:8790/*`. Copy it into `apiKey`.
 
 These values are public by design: they identify the app to Google and are not secrets. The API key's restrictions are what stop it being used elsewhere. Never put a service-account key in this repo.
 
