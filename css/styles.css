@@ -229,9 +229,15 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 }
 .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand > svg { width: 36px; height: 36px; stroke: none; border-radius: 10px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .35); }
-.brand > svg path { fill: none; }
-.brand-bg { fill: rgba(255, 255, 255, .16); }
+.brand-logo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .35), 0 8px 22px -6px rgba(14, 22, 66, .6);
+  transition: transform .25s;
+}
+.brand:hover .brand-logo { transform: rotate(-6deg) scale(1.04); }
 .brand-mark { font: 700 18px var(--display); letter-spacing: -.01em; display: inline-flex; align-items: center; gap: 7px; }
 .ai-badge {
   font: 700 10.5px var(--font);
@@ -809,7 +815,7 @@ input[type="range"] { width: 100%; accent-color: var(--brand-1); }
   .tile-hero { padding: 20px; }
   .hero-top { flex-wrap: wrap; row-gap: 10px; margin-bottom: 16px; }
   .brand { gap: 8px; }
-  .brand > svg { width: 32px; height: 32px; }
+  .brand-logo { width: 44px; height: 44px; border-radius: 11px; }
   .brand-mark { font-size: 16px; }
   .hero-actions { gap: 6px; }
   .tile-hero .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
