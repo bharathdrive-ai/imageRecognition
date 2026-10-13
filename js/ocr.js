@@ -70,7 +70,7 @@ async function runJob(canvas, settings, onProgress) {
     const { data } = await w.recognize(canvas, options, { text: true, tsv: true, hocr: true, pdf: true });
     const words = parseTsv(data.tsv || '');
     return {
-      text: (data.text || '').replace(/\s+$/, ''),
+      text: fixIndicZero((data.text || '').replace(/\s+$/, '')),
       confidence: words.length ? Math.round(data.confidence) : 0,
       words,
       tsv: data.tsv || '',
@@ -92,6 +92,24 @@ export function isEngineLoaded() {
 }
 
 /**
+ * Tesseract often reads the anusvara (the small circle nasal mark) as the script's digit
+ * zero, which looks the same: Kannada ೦ for ಂ, Telugu ౦ for ం, Malayalam ൦ for ം,
+ * Devanagari ० for ं. A real digit never follows a letter inside a word, so a "zero"
+ * right after a letter of the same script is turned back into the anusvara.
+ */
+const ANUSVARA_FIXES = [
+  [/(?<=[ऀ-॥])०/g, 'ं'], // Devanagari (Hindi, Marathi)
+  [/(?<=[ఀ-౥])౦/g, 'ం'], // Telugu
+  [/(?<=[ಀ-೥])೦/g, 'ಂ'], // Kannada
+  [/(?<=[ഀ-൥])൦/g, 'ം'], // Malayalam
+];
+
+function fixIndicZero(s) {
+  for (const [pattern, anusvara] of ANUSVARA_FIXES) s = s.replace(pattern, anusvara);
+  return s;
+}
+
+/**
  * Tesseract TSV columns:
  * level page block par line word left top width height conf text
  * Level 5 rows are individual words.
@@ -101,7 +119,7 @@ function parseTsv(tsv) {
   for (const row of tsv.split('\n')) {
     const c = row.split('\t');
     if (c[0] !== '5' || c.length < 12) continue;
-    const text = c.slice(11).join('\t').trim();
+    const text = fixIndicZero(c.slice(11).join('\t').trim());
     const conf = Number(c[10]);
     if (!text || conf < 0) continue;
     words.push({
