@@ -1,4 +1,4 @@
-# TextVision AI
+# InstaScan AI
 
 **Smart and All-In-One text processor from images and PDFs.**
 
