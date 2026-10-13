@@ -195,11 +195,11 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
 }
 .label-icon {
   flex: none;
-  width: 24px;
-  height: 24px;
-  padding: 4px;
-  border-radius: 8px;
-  stroke-width: 2.2;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border-radius: 10px;
+  stroke-width: 2.1;
   color: inherit;
   background: color-mix(in srgb, currentColor 15%, transparent);
 }
