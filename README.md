@@ -1,6 +1,6 @@
 # InstaScan AI
 
-**Smart and All-In-One text processor from images and PDFs.**
+**Scan • Extract • Translate.** Instantly extract searchable text from images and PDFs. Translate words and make information easier to find.
 
 A browser-based OCR tool that extracts text from images and PDFs using [Tesseract.js](https://github.com/naptha/tesseract.js) 7.
 Everything runs on the user's device. Files are never uploaded; only the OCR engine and language models are downloaded from a CDN (and cached after first use).

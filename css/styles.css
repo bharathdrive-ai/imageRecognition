@@ -255,6 +255,8 @@ svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width:
   letter-spacing: -.03em;
   max-width: 640px;
 }
+.tile-hero h1 .h1-dot { display: inline-block; margin: 0 .12em; color: rgba(255, 255, 255, .55); font-weight: 400; transform: translateY(-.04em); }
+.tile-hero h1 .h1-keep { white-space: nowrap; }
 .tagline { position: relative; z-index: 1; margin-top: 10px; font-size: 14.5px; color: rgba(255, 255, 255, .85); }
 .tagline a { color: #fff; font-weight: 600; text-underline-offset: 3px; }
 .hero-pills { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
