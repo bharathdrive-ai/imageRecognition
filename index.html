@@ -333,6 +333,45 @@
     </section>
   </main>
 
+  <!-- About: what the app does and how it uses Google data (also serves Google's OAuth homepage requirements) -->
+  <section class="about" id="about" aria-labelledby="aboutTitle">
+    <div class="about-card">
+      <h2 id="aboutTitle">About InstaScan AI</h2>
+      <p class="about-lead">InstaScan AI is a free web app that reads the text in your images and PDFs. It runs in your web browser, with no account or sign-up needed.</p>
+      <div class="about-grid">
+        <div>
+          <h3>What it does</h3>
+          <ul>
+            <li><b>Scan and extract:</b> recognizes printed text in photos, screenshots, scans and PDF pages, in English and 21 other languages including Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi and Bengali.</li>
+            <li><b>Smart search:</b> searches the text of all your files at once, finds duplicate or matching images, and finds images from a short description.</li>
+            <li><b>Translate:</b> translates the recognized text between English and Indian languages.</li>
+            <li><b>Export:</b> copy the text, or download it as TXT, a searchable PDF, JSON, TSV or hOCR.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>How InstaScan AI uses your Google data</h3>
+          <ul>
+            <li>Google sign-in is optional. It is used only when you click <b>Google Drive</b> to open a file from your Drive.</li>
+            <li>The app requests only the <code>drive.file</code> permission. With it, InstaScan AI can open only the files you choose in the Google file picker. It cannot see or change anything else in your Drive.</li>
+            <li>The files you pick download straight from Google Drive into your browser, where the text is recognized. They are not uploaded to, stored on or shared with any server of ours.</li>
+            <li>InstaScan AI never modifies or deletes your Drive files. You can remove its access at any time at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+            <li>InstaScan AI's use of information received from Google APIs follows the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Your privacy</h3>
+          <ul>
+            <li>Recognition, search and image matching run on your device. Your files never leave your browser.</li>
+            <li>Text is sent out only if you click <b>Translate online</b>; it then goes to the MyMemory translation service.</li>
+            <li>No ads, no analytics and no tracking cookies.</li>
+          </ul>
+          <p class="about-links"><a href="privacy.html">Privacy policy</a> · <a href="https://github.com/bharathdrive-ai/imageRecognition">Source code</a> · <a href="https://github.com/bharathdrive-ai/imageRecognition/issues">Contact and support</a></p>
+        </div>
+      </div>
+    </div>
+    <p class="about-foot">© 2026 InstaScan AI · <a href="privacy.html">Privacy policy</a></p>
+  </section>
+
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>
