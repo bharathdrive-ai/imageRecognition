@@ -1369,6 +1369,19 @@ function initHeroPills() {
   update();
 }
 
+// About us / disclaimer dialog, opened by clicking the banner logo.
+function initAboutDialog() {
+  const btn = document.getElementById('aboutBtn');
+  const dlg = document.getElementById('aboutDialog');
+  if (!btn || !dlg || typeof dlg.showModal !== 'function') return;
+  btn.addEventListener('click', () => dlg.showModal());
+  dlg.addEventListener('click', (e) => {
+    // Close on the X / "Got it" buttons, or on a click on the backdrop (outside the box).
+    if (e.target.closest('[data-close-about]') || e.target === dlg) dlg.close();
+  });
+  dlg.addEventListener('close', () => btn.focus());
+}
+
 /* ------------------------------------------------------------------ */
 /* Wiring                                                              */
 /* ------------------------------------------------------------------ */
@@ -1377,6 +1390,7 @@ function init() {
   try { applyTheme(localStorage.getItem(THEME_KEY)); } catch { /* ignore */ }
   initPalette();
   initHeroPills();
+  initAboutDialog();
   initTranslate();
   loadSettings();
   initSearch();

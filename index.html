@@ -26,7 +26,9 @@
     <header class="tile tile-hero">
       <div class="hero-top">
         <div class="brand">
-          <img class="brand-logo" src="assets/logo-256.png" srcset="assets/logo-256.png 1x, assets/logo-512.png 2x" width="56" height="56" alt="InstaScan AI logo">
+          <button id="aboutBtn" class="brand-btn" type="button" aria-haspopup="dialog" aria-controls="aboutDialog" title="About InstaScan AI">
+            <img class="brand-logo" src="assets/logo-256.png" srcset="assets/logo-256.png 1x, assets/logo-512.png 2x" width="56" height="56" alt="About InstaScan AI">
+          </button>
           <span class="brand-mark">InstaScan <span class="ai-badge">AI</span></span>
         </div>
         <div class="hero-actions">
@@ -371,6 +373,46 @@
     </div>
     <p class="about-foot">© 2026 InstaScan AI · <a href="privacy.html">Privacy policy</a></p>
   </section>
+
+  <!-- About us and disclaimer, opened from the banner logo -->
+  <dialog id="aboutDialog" class="about-dialog" aria-labelledby="aboutDialogTitle">
+    <div class="ad-head">
+      <img src="assets/logo-256.png" srcset="assets/logo-256.png 1x, assets/logo-512.png 2x" width="44" height="44" alt="">
+      <div>
+        <h2 id="aboutDialogTitle">About InstaScan AI</h2>
+        <p>Scan • Extract • Translate</p>
+      </div>
+      <button type="button" class="icon-btn ad-close" data-close-about aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="ad-body">
+      <section>
+        <h3>About us</h3>
+        <p>InstaScan AI is a free, open-source web tool that reads the text in images and PDFs, makes it searchable and translates it between English and Indian languages. It is an independent project by <a href="https://github.com/bharathdrive-ai" target="_blank" rel="noopener">bharathdrive-ai</a>, built to make information in photos, scans and documents easier to find and use.</p>
+        <p>Everything runs in your web browser. There is no account to create, no subscription and no advertising.</p>
+      </section>
+      <section>
+        <h3>Disclaimer</h3>
+        <ul>
+          <li><b>Accuracy is not guaranteed.</b> Text is recognized automatically and may contain errors, especially with handwriting, blurry photos, complex layouts or some Indian scripts. Always check important text against the original.</li>
+          <li><b>Translations are machine-generated.</b> They are approximate and can change the meaning. Do not rely on them for legal, medical, financial or other important decisions without checking with a qualified person.</li>
+          <li><b>Search results are suggestions.</b> Image and description matches are approximate and may miss or wrongly include images.</li>
+          <li><b>Your files stay on your device.</b> Recognition, search and image matching run in your browser, and your files are not uploaded. Only if you click <b>Translate online</b> is the recognized text sent to the third-party MyMemory service. See the <a href="privacy.html">privacy policy</a>.</li>
+          <li><b>Provided "as is".</b> InstaScan AI is offered without warranty of any kind. You use it at your own risk, and its developer is not liable for any loss or damage that results from using it or relying on its output.</li>
+          <li><b>Trademarks.</b> Google and Google Drive are trademarks of Google LLC. InstaScan AI is not affiliated with, endorsed or sponsored by Google.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Built with</h3>
+        <p class="ad-credits">Tesseract.js (text recognition), pdf.js (PDF pages), OpenCV.js (image matching), Transformers.js with Apple's MobileCLIP (describe search) and MyMemory (online translation). Thanks to these open-source projects and services.</p>
+      </section>
+    </div>
+    <div class="ad-foot">
+      <p><a href="privacy.html">Privacy policy</a> · <a href="https://github.com/bharathdrive-ai/imageRecognition" target="_blank" rel="noopener">Source code</a> · <a href="https://github.com/bharathdrive-ai/imageRecognition/issues" target="_blank" rel="noopener">Report an issue</a></p>
+      <button type="button" class="btn btn-primary" data-close-about>Got it</button>
+    </div>
+  </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
