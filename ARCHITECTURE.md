@@ -6,7 +6,7 @@ InstaScan AI is a static, client-side OCR web app. Tesseract.js 7 reads images a
 | --- | --- |
 | Source | https://github.com/bharathdrive-ai/imageRecognition |
 | Live (GitHub Pages) | https://bharathdrive-ai.github.io/imageRecognition/ |
-| Live (Vercel) | https://insta-scan.vercel.app/ |
+| Live (website, on Vercel) | https://www.instascan.in/ |
 
 ## System context
 
@@ -16,7 +16,7 @@ The browser downloads the app's static files from GitHub Pages or Vercel, and th
 flowchart TB
     repo["GitHub repo<br/>imageRecognition (main)"]
     pages["GitHub Pages<br/>bharathdrive-ai.github.io"]
-    vercel["Vercel<br/>insta-scan.vercel.app"]
+    vercel["Vercel<br/>www.instascan.in"]
     repo -- "push to main" --> pages
     repo -- "push to main" --> vercel
 
@@ -137,10 +137,10 @@ Settings (`ocr-settings-v1`) and the theme (`ocr-theme`) are kept in `localStora
 | Environment | Host | Source |
 | --- | --- | --- |
 | Production | GitHub Pages (legacy build, `.nojekyll`) | `main`, repo root |
-| Production | Vercel: team driveAI, project `imagesearcheasy` (domains `insta-scan.vercel.app`, primary, and the legacy `imagesearcheasy.vercel.app`), preset "Other" | `main` through the Vercel GitHub app |
+| Production | Vercel: team driveAI, project `imagesearcheasy` (custom domain `www.instascan.in`, primary, with `instascan.in` redirecting to it; also `insta-scan.vercel.app` and the legacy `imagesearcheasy.vercel.app`), preset "Other" | `main` through the Vercel GitHub app |
 | Local | `python -m http.server 8790` | Working copy (`file://` won't load ES modules) |
 
-**Google Cloud (Drive import):** project `image-text-recognition-511415` has the Picker and Drive APIs enabled. Its consent screen is in production with only the `drive.file` scope and links to `privacy.html`. The OAuth web client and the Picker-restricted API key accept requests only from the two live sites and `localhost:8790`.
+**Google Cloud (Drive import):** project `image-text-recognition-511415` has the Picker and Drive APIs enabled. Its consent screen is in production with only the `drive.file` scope and links to `privacy.html`. The OAuth web client and the Picker-restricted API key accept requests only from the live sites (www.instascan.in, the vercel.app addresses and GitHub Pages) and `localhost:8790`. The domain `instascan.in` is registered at GoDaddy and verified in Search Console as a Domain property (DNS TXT).
 
 Runtime dependencies are pinned and served by jsDelivr: `tesseract.js@7.0.0`, `tesseract.js-core@7`, `@tesseract.js-data/<lang>/4.0.0_best_int`, and `pdfjs-dist@4.10.38`.
 
@@ -158,9 +158,10 @@ Dashboard and Google Cloud links open only for the owner account.
 
 | Area | What | URL |
 | --- | --- | --- |
-| Live app | Vercel | https://insta-scan.vercel.app |
+| Live app | Website | https://www.instascan.in |
+| Live app | Vercel address | https://insta-scan.vercel.app |
 | Live app | GitHub Pages | https://bharathdrive-ai.github.io/imageRecognition/ |
-| Live app | Privacy policy | https://insta-scan.vercel.app/privacy.html |
+| Live app | Privacy policy | https://www.instascan.in/privacy.html |
 | Code and docs | GitHub repo | https://github.com/bharathdrive-ai/imageRecognition |
 | Code and docs | Architecture (Claude Doc) | https://claude.ai/code/artifact/9e90526f-4bb2-46ac-bbdb-0727260cb836 |
 | Hosting | Vercel project | https://vercel.com/drive2/imagesearcheasy |
